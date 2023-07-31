@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'debug_toolbar',
     'django_extensions',
     'rangefilter',
+    'django_select2',
 ]
 
 MIDDLEWARE = [

@@ -15,4 +15,4 @@ class Member(models.Model):
     gender = models.CharField(max_length=30, choices=Gender.choices, default=Gender.female, null=True)
 
     def __str__(self) -> str:
-        return str(self.member_id)
+        return str(self.member_id) + " - " + str(self.member_name)

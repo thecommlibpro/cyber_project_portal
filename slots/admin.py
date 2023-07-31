@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import Slot
+from members.models import Member
 from django import forms
 from django.contrib.admin.helpers import ActionForm
 from django.contrib.admin.widgets import AdminDateWidget
@@ -8,7 +9,7 @@ from rangefilter.filters import DateRangeFilterBuilder, DateTimeRangeFilterBuild
 
 from .models import LibraryNames, SlotTimes
 from .utils import generate_slots as generate_util
-
+from .forms import SlotForm
 
 class GenerateSlotForm(ActionForm):
     library = forms.ChoiceField(choices=LibraryNames.choices, required=False)
@@ -16,13 +17,14 @@ class GenerateSlotForm(ActionForm):
     end_time = forms.ChoiceField(choices=SlotTimes.choices, required=False)
     date = forms.DateField(widget=AdminDateWidget, required=False)
 
-
 class SlotAdmin(admin.ModelAdmin):
+
+    form = SlotForm
     action_form = GenerateSlotForm
     list_display = (
         'get_time',
         'member',
-        'get_member_name',
+        # 'get_member_name',
         'get_member_gender',
     )
 
@@ -42,7 +44,7 @@ class SlotAdmin(admin.ModelAdmin):
         'member__member_name',
     )
 
-    list_filter = ('library',("datetime", DateRangeFilterBuilder()))
+    list_filter = ('library',("datetime", DateRangeFilterBuilder()), 'datetime')
 
     @admin.action(description="Generate slots for the day")
     def generate_slots(modeladmin, request, queryset):

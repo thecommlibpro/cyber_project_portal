@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 
 from . import views
 
@@ -13,4 +13,5 @@ urlpatterns = [
         views.SlotDetailView.as_view(),
         name="slot-detail"
     ),
+    path("select2/", include("django_select2.urls")),
 ]
