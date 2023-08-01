@@ -1,7 +1,7 @@
 from django.db import models
 
 class Member(models.Model):
-    member_id = models.TextField(null=True)
+    member_id = models.CharField(max_length=30, null=False, primary_key=True)
     member_name = models.TextField(null=True)
 
     class Gender(models.TextChoices):
