@@ -8,7 +8,7 @@ from django.contrib.admin.widgets import AdminDateWidget
 from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from rangefilter.filters import DateRangeFilterBuilder, DateTimeRangeFilterBuilder, NumericRangeFilterBuilder
 
-from .models import LibraryNames, SlotTimes
+from .models import LibraryNames, SlotTimes, LaptopCategories
 from .utils import generate_slots as generate_util, generate_slots_for_a_month, check_if_male_member_enrolled_consecutive
 from .forms import SlotForm
 
@@ -31,6 +31,7 @@ class SlotAdmin(admin.ModelAdmin):
         'member',
         # 'get_member_name',
         'get_member_gender',
+        'laptop',
     )
 
     @admin.display(ordering='-datetime', description='Slot time')
@@ -49,7 +50,7 @@ class SlotAdmin(admin.ModelAdmin):
         'member__member_name',
     )
 
-    list_filter = ('library',("datetime", DateRangeFilterBuilder()), 'datetime')
+    list_filter = ('library',("datetime", DateRangeFilterBuilder()), 'datetime', 'laptop')
 
     @admin.action(description="Generate slots for the month")
     def generate_slots_for_month(modeladmin, request, queryset):
@@ -58,13 +59,13 @@ class SlotAdmin(admin.ModelAdmin):
     @admin.action(description="Generate slots for the day")
     def generate_slots(modeladmin, request, queryset):
         request_json = request.POST
+        print(request_json)
         start_time = request_json["start_time"]
         end_time = request_json["end_time"]
         date = request_json["date"]
         library = request_json["library"]
-
-        print(library, date, start_time, end_time)
-        generate_util(library, date, start_time, end_time)
+        for laptop in LaptopCategories:
+            generate_util(library, laptop, date, start_time, end_time)
     
     # This is for not having to select any existing slot in case of generating slots
     def changelist_view(self, request, extra_context=None):

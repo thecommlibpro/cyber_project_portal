@@ -33,16 +33,25 @@ class SlotTimes(models.TextChoices):
 
 
 class LibraryNames(models.TextChoices):
-    TCLP_01 = "The Community Library Project - Khirki"
-    TCLP_02 = "The Community Library Project - Sikanderpur"
-    TCLP_03 = "The Community Library Project - Sec 43"
-    TCLP_04 = "The Community Library Project - South Ex"
+    TCLP_01 = ("The Community Library Project - Khirki", "The Community Library Project - Khirki")
+    TCLP_02 = ("The Community Library Project - Sikanderpur", "The Community Library Project - Sikanderpur")
+    # TCLP_03 = ("The Community Library Project - Sec 43", "The Community Library Project - Sec 43")
+    TCLP_04 = ("The Community Library Project - South Ex", "The Community Library Project - South Ex")
 
+class LaptopCategories(models.TextChoices):
+    laptop_common_1 = ("Common Laptop - 1", "Common Laptop - 1")
+    laptop_common_2 = ("Common Laptop - 2", "Common Laptop - 2")
+    laptop_non_male_1 = ("Laptop for girls and Trans members - 1", "Laptop for girls and Trans members - 1")
+    laptop_non_male_2 = ("Laptop for girls and Trans members - 2", "Laptop for girls and Trans members - 2")
+    laptop_education = ("Laptop for education", "Laptop for education")
+    laptop_disability = ("Laptop for disabled", "Laptop for disabled")
+    
 
 class Slot(models.Model):
     library = models.CharField(max_length=50, choices=LibraryNames.choices, default=LibraryNames.TCLP_01)
     datetime = models.DateTimeField(default=datetime.now)
     member = models.ForeignKey(Member, on_delete=models.CASCADE, null=True)
+    laptop = models.CharField(max_length=50, choices=LaptopCategories.choices, default=LaptopCategories.laptop_common_1)
 
     def __str__(self) -> str:
         return str(self.datetime)

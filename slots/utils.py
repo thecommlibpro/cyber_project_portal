@@ -1,4 +1,4 @@
-from slots.models import LibraryNames, Slot, Member
+from slots.models import LibraryNames, Slot, Member, LaptopCategories
 from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
 from dateutil.utils import today
@@ -16,10 +16,11 @@ def generate_slots_for_a_month():
             start_time = "1:00 pm"
             end_time = "9:00 pm"
         for library in LibraryNames.values:
-            generate_slots(library, str(today_day), start_time, end_time)
+            for laptop in LaptopCategories.values:
+                generate_slots(library, laptop, str(today_day), start_time, end_time)
         today_day += relativedelta(days=1)
 
-def generate_slots(library, date, start_time, end_time):
+def generate_slots(library, laptop, date, start_time, end_time):
     # The Community Library Project - Khirki 2023-07-29 8:00 am 8:00 am
 
     library = LibraryNames(library)
@@ -31,6 +32,7 @@ def generate_slots(library, date, start_time, end_time):
         Slot.objects.create(
             library=library,
             datetime=start_time,
+            laptop=laptop,
         )
 
         start_time += relativedelta(minutes=60)
