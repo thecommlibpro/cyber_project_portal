@@ -17,6 +17,7 @@ class DataImport(ActionForm):
     file = forms.FileField(required=False)
 
 class MemberAdmin(admin.ModelAdmin):
+    
     action_form = DataImport
 
     @admin.action(description="Import Members from file")

@@ -21,17 +21,22 @@ class GenerateSlotForm(ActionForm):
 class SlotAdmin(admin.ModelAdmin):
 
     def save_model(self, request: Any, obj: Any, form: Any, change: Any) -> None:
-        check_if_male_member_enrolled_consecutive(request)
+        # check_if_male_member_enrolled_consecutive(request)
         return super().save_model(request, obj, form, change)
 
     form = SlotForm
     action_form = GenerateSlotForm
     list_display = (
         'get_time',
-        'member',
+        # 'member',
         # 'get_member_name',
-        'get_member_gender',
-        'laptop',
+        # 'get_member_gender',
+        'laptop_common_1',
+        'laptop_common_2',
+        'laptop_non_male_1',
+        'laptop_non_male_2',
+        'laptop_education',
+        'laptop_disability',
     )
 
     @admin.display(ordering='-datetime', description='Slot time')
@@ -50,7 +55,7 @@ class SlotAdmin(admin.ModelAdmin):
         'member__member_name',
     )
 
-    list_filter = ('library',("datetime", DateRangeFilterBuilder()), 'datetime', 'laptop')
+    list_filter = ('library',("datetime", DateRangeFilterBuilder()), 'datetime')
 
     @admin.action(description="Generate slots for the month")
     def generate_slots_for_month(modeladmin, request, queryset):

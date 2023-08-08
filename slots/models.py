@@ -45,13 +45,22 @@ class LaptopCategories(models.TextChoices):
     laptop_non_male_2 = ("Laptop for girls and Trans members - 2", "Laptop for girls and Trans members - 2")
     laptop_education = ("Laptop for education", "Laptop for education")
     laptop_disability = ("Laptop for disabled", "Laptop for disabled")
-    
+
 
 class Slot(models.Model):
+
+    class Meta:
+        unique_together = (('library', 'datetime'))
+
     library = models.CharField(max_length=50, choices=LibraryNames.choices, default=LibraryNames.TCLP_01)
     datetime = models.DateTimeField(default=datetime.now)
-    member = models.ForeignKey(Member, on_delete=models.CASCADE, null=True)
-    laptop = models.CharField(max_length=50, choices=LaptopCategories.choices, default=LaptopCategories.laptop_common_1)
+    # member = models.ForeignKey(Member, on_delete=models.CASCADE, null=True)
+    laptop_common_1 = models.ForeignKey(Member, related_name='laptop_common_1', on_delete=models.CASCADE, null=True, blank=True)
+    laptop_common_2 = models.ForeignKey(Member, related_name='laptop_common_2', on_delete=models.CASCADE, null=True, blank=True)
+    laptop_non_male_1 = models.ForeignKey(Member, related_name='laptop_non_male_1', on_delete=models.CASCADE, null=True, blank=True)
+    laptop_non_male_2 = models.ForeignKey(Member, related_name='laptop_non_male_2', on_delete=models.CASCADE, null=True, blank=True)
+    laptop_education = models.ForeignKey(Member, related_name='laptop_education', on_delete=models.CASCADE, null=True, blank=True)
+    laptop_disability = models.ForeignKey(Member, related_name='laptop_disability', on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self) -> str:
         return str(self.datetime)

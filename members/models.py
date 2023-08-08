@@ -17,4 +17,4 @@ class Member(models.Model):
     age = models.IntegerField(null=True)
 
     def __str__(self) -> str:
-        return str(self.member_id) + " - " + str(self.member_name) + " - " + str(self.age)
+        return str(self.member_id) + " - " + str(self.member_name) + " - " + str(self.age) + " - " + str(self.gender)

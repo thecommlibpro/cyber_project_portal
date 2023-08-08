@@ -13,5 +13,11 @@ class SlotForm(forms.ModelForm):
         model = models.Slot
         fields = "__all__"
         widgets = {
-            "member": MemberWidget
+            "member": MemberWidget,
+            "laptop_common_1": MemberWidget,
+            "laptop_common_2": MemberWidget,
+            "laptop_non_male_1": MemberWidget,
+            "laptop_non_male_2": MemberWidget,
+            "laptop_education": MemberWidget,
+            "laptop_disability": MemberWidget,
         }
