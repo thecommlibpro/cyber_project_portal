@@ -1,6 +1,7 @@
 from django_select2 import forms as s2forms
 from django import forms
 from . import models
+from slots.models import Member
 
 class MemberWidget(s2forms.ModelSelect2Widget):
     search_fields = [
@@ -21,3 +22,10 @@ class SlotForm(forms.ModelForm):
             "laptop_education": MemberWidget,
             "laptop_disability": MemberWidget,
         }
+    
+    def clean_age(self):
+        print("PPPPPPPP")
+        member_id = self.cleaned_data["laptop_common_1"]
+        member_age = Member.objects.filter(member_id=member_id)[0].age
+        if member_age < 11:
+            raise forms.ValidationError('Member has to be of age 11 years or older')

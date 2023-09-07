@@ -4,6 +4,8 @@ from dateutil.relativedelta import relativedelta
 from dateutil.utils import today
 from django.contrib import messages
 
+from django import forms
+
 def generate_slots_for_a_month():
     today_day = today().date()
     month_end_day = today_day + relativedelta(days=30)
@@ -35,6 +37,9 @@ def generate_slots(library, date, start_time, end_time):
         )
 
         start_time += relativedelta(minutes=60)
+'''
+Rules for slots
+'''
 
 def check_if_male_member_enrolled_consecutive(request):
     member_id = request.POST["member"]
@@ -51,3 +56,9 @@ def check_if_male_member_enrolled_consecutive(request):
 
     if day:
         messages.add_message(request=request, level=messages.WARNING, message='This member has used the slot ' + day)
+
+def check_if_member_more_than_11_years(request):
+    member_id = request.POST["laptop_common_1"]
+    member_age = Member.objects.filter(member_id=member_id)[0].age
+    if member_age < 11:
+        raise forms.ValidationError(request=request, message='Member has to be of age 11 years or older')

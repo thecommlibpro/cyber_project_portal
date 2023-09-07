@@ -9,7 +9,8 @@ from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from rangefilter.filters import DateRangeFilterBuilder, DateTimeRangeFilterBuilder, NumericRangeFilterBuilder
 
 from .models import LibraryNames, SlotTimes, LaptopCategories
-from .utils import generate_slots as generate_util, generate_slots_for_a_month, check_if_male_member_enrolled_consecutive
+from .utils import generate_slots as generate_util
+from .utils import *
 from .forms import SlotForm
 
 class GenerateSlotForm(ActionForm):
@@ -20,9 +21,13 @@ class GenerateSlotForm(ActionForm):
 
 class SlotAdmin(admin.ModelAdmin):
 
-    def save_model(self, request: Any, obj: Any, form: Any, change: Any) -> None:
+    def save_models(self, request: Any, obj: Any, form: Any, change: Any) -> None:
         # check_if_male_member_enrolled_consecutive(request)
-        return super().save_model(request, obj, form, change)
+        try:
+            check_if_member_more_than_11_years(request)
+            return super().save_model(request, obj, form, change)
+        except forms.ValidationError:
+            self.message_user(request=request, message='Member has to be of age 11 years or older', level=messages.ERROR)
 
     form = SlotForm
     action_form = GenerateSlotForm
