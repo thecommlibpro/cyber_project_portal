@@ -92,7 +92,7 @@ class SlotForm(forms.ModelForm):
                         non_male_laptop_list = laptop_list[:]
                         non_male_laptop_list.remove("laptop_disability")
                     else:
-                        non_male_laptop_list = ["laptop_non_male_1", "laptop_non_male_1"]
+                        non_male_laptop_list = ["laptop_non_male_1", "laptop_non_male_2"]
                     if changed_field in non_male_laptop_list:
                         raise forms.ValidationError(f"Member {member_id} is male and not allowed to take laptop {changed_field}")
 
