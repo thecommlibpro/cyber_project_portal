@@ -3,7 +3,7 @@ from .models import Member
 import csv
 from django.contrib.admin.helpers import ActionForm, AdminForm
 from django import forms
-
+from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from datetime import datetime, date
  
 def calculate_age(birthDate):
@@ -49,5 +49,15 @@ class MemberAdmin(admin.ModelAdmin):
         'member_id',
         'gender',
     )
+
+    # This is for not having to select any existing slot in case of generating slots
+    def changelist_view(self, request, extra_context=None):
+        if 'action' in request.POST and request.POST['action'] in ['import_members']:
+            if not request.POST.getlist(ACTION_CHECKBOX_NAME):
+                post = request.POST.copy()
+                for u in Member.objects.all():
+                    post.update({ACTION_CHECKBOX_NAME: str(u.member_id)})
+                request._set_post(post)
+        return super(MemberAdmin, self).changelist_view(request, extra_context)
 
 admin.site.register(Member, MemberAdmin)
