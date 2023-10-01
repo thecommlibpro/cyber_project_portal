@@ -36,6 +36,10 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 INSTALLED_APPS = [
     'members.apps.MembersConfig',
     'slots.apps.SlotsConfig',
+    'admin_interface',
+    # 'flat_responsive', # only if django version < 2.0
+    # 'flat', # only if django version < 1.9
+    'colorfield',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

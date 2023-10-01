@@ -30,23 +30,47 @@ class SlotAdmin(admin.ModelAdmin):
             self.message_user(request=request, message='Member has to be of age 11 years or older', level=messages.ERROR)
 
     form = SlotForm
-    action_form = GenerateSlotForm
+    # action_form = GenerateSlotForm
     list_display = (
         'get_time',
         # 'member',
         # 'get_member_name',
         # 'get_member_gender',
-        'laptop_common_1',
-        'laptop_common_2',
-        'laptop_non_male_1',
-        'laptop_non_male_2',
-        'laptop_education',
-        'laptop_disability',
+        'get_laptop_common_1',
+        'get_laptop_common_2',
+        'get_laptop_non_male_1',
+        'get_laptop_non_male_2',
+        'get_laptop_education',
+        'get_laptop_disability',
     )
+
+    @admin.display(description= "Laptop for All - 1")
+    def get_laptop_common_1(self, obj):
+        return obj.laptop_common_1
+    
+    @admin.display(description= "Laptop for All - 2")
+    def get_laptop_common_2(self, obj):
+        return obj.laptop_common_2
+    
+    @admin.display(description= "Laptop for Girls, T, NB - 1")
+    def get_laptop_non_male_1(self, obj):
+        return obj.laptop_non_male_1
+    
+    @admin.display(description= "Laptop for Girls, T, NB - 2")
+    def get_laptop_non_male_2(self, obj):
+        return obj.laptop_non_male_2
+    
+    @admin.display(description= "Laptop for Education")
+    def get_laptop_education(self, obj):
+        return obj.laptop_education
+    
+    @admin.display(description= "Laptop for P w Disabilities")
+    def get_laptop_disability(self, obj):
+        return obj.laptop_disability
 
     @admin.display(ordering='-datetime', description='Slot time')
     def get_time(self, obj):
-        return obj.datetime.strftime("%I:%M%p")
+        return obj.datetime.strftime("%Y-%m-%d %I:%M%p")
 
     @admin.display(ordering='member__member_name', description='Member name')
     def get_member_name(self, obj):
@@ -89,7 +113,7 @@ class SlotAdmin(admin.ModelAdmin):
 
     
     actions = (
-        'generate_slots', 'generate_slots_for_month'
+        'generate_slots_for_month',
     )
 
 admin.site.register(Slot, SlotAdmin)

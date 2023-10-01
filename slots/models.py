@@ -47,7 +47,7 @@ class LaptopCategories(models.TextChoices):
     laptop_disability = ("Laptop for disabled", "Laptop for disabled")
 
 
-class Slot(models.Model):
+class Slot(models.Model):    
 
     class Meta:
         unique_together = (('library', 'datetime'))

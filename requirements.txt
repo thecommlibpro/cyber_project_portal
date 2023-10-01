@@ -15,3 +15,4 @@ six==1.16.0
 sqlparse==0.4.4
 zipp==3.15.0
 django-select2==8.1.2
+django-admin-interface==0.26.1
