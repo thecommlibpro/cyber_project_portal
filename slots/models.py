@@ -55,12 +55,12 @@ class Slot(models.Model):
     library = models.CharField(max_length=50, choices=LibraryNames.choices, default=LibraryNames.TCLP_01)
     datetime = models.DateTimeField(default=datetime.now)
     # member = models.ForeignKey(Member, on_delete=models.CASCADE, null=True)
-    laptop_common_1 = models.ForeignKey(Member, related_name='laptop_common_1', on_delete=models.CASCADE, null=True, blank=True)
-    laptop_common_2 = models.ForeignKey(Member, related_name='laptop_common_2', on_delete=models.CASCADE, null=True, blank=True)
-    laptop_non_male_1 = models.ForeignKey(Member, related_name='laptop_non_male_1', on_delete=models.CASCADE, null=True, blank=True)
-    laptop_non_male_2 = models.ForeignKey(Member, related_name='laptop_non_male_2', on_delete=models.CASCADE, null=True, blank=True)
-    laptop_education = models.ForeignKey(Member, related_name='laptop_education', on_delete=models.CASCADE, null=True, blank=True)
-    laptop_disability = models.ForeignKey(Member, related_name='laptop_disability', on_delete=models.CASCADE, null=True, blank=True)
+    laptop_common_1 = models.ForeignKey(Member, verbose_name="Laptop for All - 1", related_name='laptop_common_1', on_delete=models.CASCADE, null=True, blank=True)
+    laptop_common_2 = models.ForeignKey(Member, verbose_name="Laptop for All - 2", related_name='laptop_common_2', on_delete=models.CASCADE, null=True, blank=True)
+    laptop_non_male_1 = models.ForeignKey(Member, verbose_name="Laptop for Girls, T, NB - 1", related_name='laptop_non_male_1', on_delete=models.CASCADE, null=True, blank=True)
+    laptop_non_male_2 = models.ForeignKey(Member, verbose_name="Laptop for Girls, T, NB - 2", related_name='laptop_non_male_2', on_delete=models.CASCADE, null=True, blank=True)
+    laptop_education = models.ForeignKey(Member, verbose_name="Laptop for Education", related_name='laptop_education', on_delete=models.CASCADE, null=True, blank=True)
+    laptop_disability = models.ForeignKey(Member, verbose_name="Laptop for P w Disabilities", related_name='laptop_disability', on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self) -> str:
         return str(self.datetime)
