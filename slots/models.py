@@ -51,6 +51,7 @@ class Slot(models.Model):
 
     class Meta:
         unique_together = (('library', 'datetime'))
+        ordering = ['datetime']
 
     library = models.CharField(max_length=50, choices=LibraryNames.choices, default=LibraryNames.TCLP_01)
     datetime = models.DateTimeField(default=datetime.now)

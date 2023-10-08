@@ -78,7 +78,7 @@ class SlotAdmin(admin.ModelAdmin):
     # def get_laptop_disability(self, obj):
     #     return obj.laptop_disability
 
-    @admin.display(ordering='-datetime', description='Slot time')
+    @admin.display(description='Slot time')
     def get_time(self, obj):
         return obj.datetime.strftime("%Y-%m-%d %I:%M%p")
 
