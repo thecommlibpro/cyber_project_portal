@@ -7,6 +7,8 @@ from django.contrib.admin.helpers import ActionForm
 from django.contrib.admin.widgets import AdminDateWidget
 from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from rangefilter.filters import DateRangeFilterBuilder, DateTimeRangeFilterBuilder, NumericRangeFilterBuilder
+from django.template.defaultfilters import linebreaksbr
+import easy
 
 from .models import LibraryNames, SlotTimes, LaptopCategories
 from .utils import generate_slots as generate_util
@@ -36,13 +38,20 @@ class SlotAdmin(admin.ModelAdmin):
         # 'member',
         # 'get_member_name',
         # 'get_member_gender',
-        'laptop_common_1',
-        'laptop_common_2',
-        'laptop_non_male_1',
-        'laptop_non_male_2',
-        'laptop_education',
-        'laptop_disability',
+        'wrapped_field_laptop_common_1',
+        'wrapped_field_laptop_common_2',
+        'wrapped_field_laptop_non_male_1',
+        'wrapped_field_laptop_non_male_2',
+        'wrapped_field_laptop_education',
+        'wrapped_field_laptop_disability',
     )
+
+    wrapped_field_laptop_common_1 = easy.SimpleAdminField(lambda x: linebreaksbr(x.laptop_common_1) if x.laptop_common_1 else "", 'laptop_common_1', 'laptop_common_1')
+    wrapped_field_laptop_common_2 = easy.SimpleAdminField(lambda x: linebreaksbr(x.laptop_common_2) if x.laptop_common_2 else "", 'laptop_common_2', 'laptop_common_2')
+    wrapped_field_laptop_non_male_1 = easy.SimpleAdminField(lambda x: linebreaksbr(x.laptop_non_male_1) if x.laptop_non_male_1 else "", 'laptop_non_male_1', 'laptop_non_male_1')
+    wrapped_field_laptop_non_male_2 = easy.SimpleAdminField(lambda x: linebreaksbr(x.laptop_non_male_2) if x.laptop_non_male_2 else "", 'laptop_non_male_2', 'laptop_non_male_2')
+    wrapped_field_laptop_education = easy.SimpleAdminField(lambda x: linebreaksbr(x.laptop_education) if x.laptop_education else "", 'laptop_education', 'laptop_education')
+    wrapped_field_laptop_disability = easy.SimpleAdminField(lambda x: linebreaksbr(x.laptop_disability) if x.laptop_disability else "", 'laptop_disability', 'laptop_disability')
 
     # @admin.display(description= "Laptop for All - 1")
     # def get_laptop_common_1(self, obj):
