@@ -66,10 +66,11 @@ class SlotForm(forms.ModelForm):
         for laptop_name in laptop_list:
             member_list += self.get_member_list(library, date, laptop_name)
         for changed_field in changed_data:
-            if cleaned_data[changed_field]:
-                member_id = cleaned_data[changed_field].member_id
-                if member_id in member_list:
-                    raise forms.ValidationError(f"Member {member_id} has already taken a slot today")
+            if changed_field != "laptop_education":
+                if cleaned_data[changed_field]:
+                    member_id = cleaned_data[changed_field].member_id
+                    if member_id in member_list:
+                        raise forms.ValidationError(f"Member {member_id} has already taken a slot today")
         
         #3
         prev_date = str(parse(date).date() - relativedelta(days=1))
