@@ -54,30 +54,6 @@ class SlotAdmin(admin.ModelAdmin):
     wrapped_field_laptop_education = easy.SimpleAdminField(lambda x: linebreaksbr(x.laptop_education) if x.laptop_education else "", "Laptop for Education", "Laptop for Education")
     wrapped_field_laptop_disability = easy.SimpleAdminField(lambda x: linebreaksbr(x.laptop_disability) if x.laptop_disability else "", "Laptop for P w Disabilities", "Laptop for P w Disabilities")
 
-    # @admin.display(description= "Laptop for All - 1")
-    # def get_laptop_common_1(self, obj):
-    #     return obj.laptop_common_1
-
-    # @admin.display(description= "Laptop for All - 2")
-    # def get_laptop_common_2(self, obj):
-    #     return obj.laptop_common_2
-    
-    # @admin.display(description= "Laptop for Girls, T, NB - 1")
-    # def get_laptop_non_male_1(self, obj):
-    #     return obj.laptop_non_male_1
-    
-    # @admin.display(description= "Laptop for Girls, T, NB - 2")
-    # def get_laptop_non_male_2(self, obj):
-    #     return obj.laptop_non_male_2
-    
-    # @admin.display(description= "Laptop for Education")
-    # def get_laptop_education(self, obj):
-    #     return obj.laptop_education
-    
-    # @admin.display(description= "Laptop for P w Disabilities")
-    # def get_laptop_disability(self, obj):
-    #     return obj.laptop_disability
-
     @admin.display(description='Slot time')
     def get_time(self, obj):
         return obj.datetime.strftime("%Y-%m-%d %I:%M%p")
@@ -99,6 +75,15 @@ class SlotAdmin(admin.ModelAdmin):
     @admin.action(description="Generate slots for the month")
     def generate_slots_for_month(modeladmin, request, queryset):
         generate_slots_for_a_month()
+    
+    @admin.action(description="Generate gender wise report")
+    def generate_gender_wise_report(modeladmin, request, queryset):
+        request_json = dict(request.POST)
+        laptop_list = list(filter(lambda x: x.startswith("laptop"), [x.name for x in Slot._meta.get_fields()]))
+        for slot_id in request_json['_selected_action']:
+            for laptop in laptop_list:
+                member = Slot.objects.get(id=slot_id).__getattribute__(laptop)
+                print(member)
 
     @admin.action(description="Generate slots for the day")
     def generate_slots(modeladmin, request, queryset):
@@ -124,6 +109,7 @@ class SlotAdmin(admin.ModelAdmin):
     
     actions = (
         'generate_slots_for_month',
+        'generate_gender_wise_report',
     )
 
 admin.site.register(Slot, SlotAdmin)
