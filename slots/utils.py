@@ -12,16 +12,9 @@ def generate_slots_for_a_month():
 
     while today_day < month_end_day:
         for library in LibraryNames.values:
-            if library == "The Community Library Project - Khirki":
-                start_time = "12:00 pm"
-                end_time = "8:00 pm"
-            else:
-                if today_day.weekday() < 5:
-                    start_time = "10:00 am"
-                    end_time = "6:00 pm"
-                else:
-                    start_time = "1:00 pm"
-                    end_time = "9:00 pm"
+            # if library == "The Community Library Project - Khirki":
+            start_time = "12:00 pm"
+            end_time = "8:00 pm"
             # for laptop in LaptopCategories.values:
             generate_slots(library, str(today_day), start_time, end_time)
         today_day += relativedelta(days=1)
