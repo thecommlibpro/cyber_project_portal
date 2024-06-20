@@ -108,7 +108,7 @@ class SlotAdmin(admin.ModelAdmin):
 
     
     actions = (
-        'generate_slots_for_month',
+        # 'generate_slots_for_month',
         'generate_gender_wise_report',
     )
 
