@@ -1,4 +1,5 @@
 from typing import Any
+from django.http import HttpResponse
 from django.contrib import admin
 from .models import Slot
 from django.contrib import messages
@@ -9,22 +10,22 @@ from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from rangefilter.filters import DateRangeFilterBuilder, DateTimeRangeFilterBuilder, NumericRangeFilterBuilder
 from django.template.defaultfilters import linebreaksbr
 import easy
+import csv
 
 from .models import LibraryNames, SlotTimes, LaptopCategories
 from .utils import generate_slots as generate_util
 from .utils import *
 from .forms import SlotForm
+from django.db import connection
 
 class GenerateSlotForm(ActionForm):
     library = forms.ChoiceField(choices=LibraryNames.choices, required=False)
-    start_time = forms.ChoiceField(choices=SlotTimes.choices, required=False)
-    end_time = forms.ChoiceField(choices=SlotTimes.choices, required=False)
-    date = forms.DateField(widget=AdminDateWidget, required=False)
+    start_day = forms.DateField(widget=AdminDateWidget, required=False)
+    end_day = forms.DateField(widget=AdminDateWidget, required=False)
 
 class SlotAdmin(admin.ModelAdmin):
 
     def save_models(self, request: Any, obj: Any, form: Any, change: Any) -> None:
-        # check_if_male_member_enrolled_consecutive(request)
         try:
             check_if_member_more_than_11_years(request)
             return super().save_model(request, obj, form, change)
@@ -32,12 +33,9 @@ class SlotAdmin(admin.ModelAdmin):
             self.message_user(request=request, message='Member has to be of age 11 years or older', level=messages.ERROR)
 
     form = SlotForm
-    # action_form = GenerateSlotForm
+    action_form = GenerateSlotForm
     list_display = (
         'get_time',
-        # 'member',
-        # 'get_member_name',
-        # 'get_member_gender',
         'wrapped_field_laptop_common_1',
         'wrapped_field_laptop_common_2',
         'wrapped_field_laptop_non_male_1',
@@ -72,44 +70,77 @@ class SlotAdmin(admin.ModelAdmin):
 
     list_filter = ('library',("datetime", DateRangeFilterBuilder()), 'datetime')
 
-    @admin.action(description="Generate slots for the month")
-    def generate_slots_for_month(modeladmin, request, queryset):
-        generate_slots_for_a_month()
-    
-    @admin.action(description="Generate gender wise report")
-    def generate_gender_wise_report(modeladmin, request, queryset):
+    '''
+    Reports -
+    R2 - Generate Gender wise report of members
+    '''
+    @admin.action(description="R2 - Generate Gender wise report of members")
+    def generate_r2(modeladmin, request, queryset):
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=R2.csv'
         request_json = dict(request.POST)
+        library = request_json["library"][0]
+        start_day = request_json["start_day"][0]
+        end_day = request_json["end_day"][0]
+        cursor = connection.cursor()
         laptop_list = list(filter(lambda x: x.startswith("laptop"), [x.name for x in Slot._meta.get_fields()]))
-        for slot_id in request_json['_selected_action']:
-            for laptop in laptop_list:
-                member = Slot.objects.get(id=slot_id).__getattribute__(laptop)
-                print(member)
+        with connection.cursor() as cursor:
+            query = f"SELECT * FROM slots_slot where library = '{library}' and datetime >= '{start_day} 00:00:00' and datetime <= '{end_day} 23:00:00'"
+            print(query)
+            cursor.execute(query)
+            columns = [col[0] for col in cursor.description]
+            results = [
+                dict(zip(columns, row))
+                for row in cursor.fetchall()
+            ]
 
-    @admin.action(description="Generate slots for the day")
-    def generate_slots(modeladmin, request, queryset):
-        request_json = request.POST
-        print(request_json)
-        start_time = request_json["start_time"]
-        end_time = request_json["end_time"]
-        date = request_json["date"]
-        library = request_json["library"]
-        for laptop in LaptopCategories:
-            generate_util(library, laptop, date, start_time, end_time)
+        laptop_list = list(filter(lambda x: x.startswith("laptop"), [x.name for x in Slot._meta.get_fields()]))
+
+        with connection.cursor() as cursor:
+            cursor.execute(f"SELECT * FROM members_member")
+            columns = [col[0] for col in cursor.description]
+            member_results = [
+                dict(zip(columns, row))
+                for row in cursor.fetchall()
+            ]
+
+        member_gender_map = {}
+
+        for row in member_results:
+            member_gender_map[row['member_id']] = row['gender']
+
+        laptop_list = list(filter(lambda x: x.startswith("laptop"), [x.name for x in Slot._meta.get_fields()]))
+
+        output = {}
+
+        for row in results:
+            for laptop in laptop_list:
+                mid = row[f"{laptop}_id"]
+                if mid:
+                    mgender = member_gender_map[mid]
+                    if mgender in output:
+                        output[mgender] += 1
+                    else:
+                        output[mgender] = 1
+
+        fieldnames = ["Gender", "Count of members"]
+        writer = csv.writer(response)
+        writer.writerow(fieldnames)
+        for k,v in output.items():
+            writer.writerow([k, v])
+        return response
     
     # This is for not having to select any existing slot in case of generating slots
     def changelist_view(self, request, extra_context=None):
-        if 'action' in request.POST and request.POST['action'] in ['generate_slots', 'generate_slots_for_month']:
+        if 'action' in request.POST and request.POST['action'] in ['generate_member_count_for_duration', 'generate_r2']:
             if not request.POST.getlist(ACTION_CHECKBOX_NAME):
                 post = request.POST.copy()
-                for u in Slot.objects.all():
-                    post.update({ACTION_CHECKBOX_NAME: str(u.id)})
+                post.update({ACTION_CHECKBOX_NAME: str(Slot.objects.first().id)})
                 request._set_post(post)
         return super(SlotAdmin, self).changelist_view(request, extra_context)
 
-    
     actions = (
-        # 'generate_slots_for_month',
-        'generate_gender_wise_report',
+        'generate_r2',
     )
 
 admin.site.register(Slot, SlotAdmin)
