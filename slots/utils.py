@@ -3,7 +3,7 @@ from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
 from dateutil.utils import today
 from django.contrib import messages
-
+from django.db import connection
 from django import forms
 
 def generate_slots_for_a_month():
@@ -59,3 +59,24 @@ def check_if_member_more_than_11_years(request):
     member_age = Member.objects.filter(member_id=member_id)[0].age
     if member_age < 11:
         raise forms.ValidationError(request=request, message='Member has to be of age 11 years or older')
+    
+def get_member_results():
+    cursor = connection.cursor()
+    cursor.execute(f"SELECT * FROM members_member")
+    columns = [col[0] for col in cursor.description]
+    member_results = [
+        dict(zip(columns, row))
+        for row in cursor.fetchall()
+    ]
+    return member_results
+
+def get_slot_results(library, start_day, end_day):
+    cursor = connection.cursor()
+    query = f"SELECT * FROM slots_slot where library = '{library}' and datetime >= '{start_day} 00:00:00' and datetime <= '{end_day} 23:00:00'"
+    cursor.execute(query)
+    columns = [col[0] for col in cursor.description]
+    results = [
+        dict(zip(columns, row))
+        for row in cursor.fetchall()
+    ]
+    return results
