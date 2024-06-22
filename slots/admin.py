@@ -73,7 +73,9 @@ class SlotAdmin(admin.ModelAdmin):
     Reports -
     R1 - Generate Gender wise report of UNIQUE members
     R2 - Generate Gender wise report of members
-    R3 - Generate Gender wise report of Most/Least frequent user
+    R3 - Generate Gender and Age wise report of members
+    R4 - Generate Gender wise report of Most/Least frequent user
+    R7 - Generate list of every member who took the slot
     '''
     @admin.action(description="R1 - Generate Gender wise report of UNIQUE members")
     def generate_r1(modeladmin, request, queryset):
@@ -148,10 +150,51 @@ class SlotAdmin(admin.ModelAdmin):
             writer.writerow([k, v])
         return response
     
-    @admin.action(description="R3 - Generate Gender wise report of Most/Least frequent user")
+    @admin.action(description="R3 - Generate Gender and Age wise report of members")
     def generate_r3(modeladmin, request, queryset):
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename=R3.csv'
+        request_json = dict(request.POST)
+        library = request_json["library"][0]
+        start_day = request_json["start_day"][0]
+        end_day = request_json["end_day"][0]
+        laptop_list = list(filter(lambda x: x.startswith("laptop"), [x.name for x in Slot._meta.get_fields()]))
+        results = get_slot_results(library, start_day, end_day)
+        member_results = get_member_results()
+        member_gender_map = {}
+
+        for row in member_results:
+            age = row['age']
+            if age >= 18:
+                age = '18+'
+            else:
+                age = '11-18'
+            member_gender_map[row['member_id']] = (row['gender'], age)
+
+        output = {}
+
+        for row in results:
+            for laptop in laptop_list:
+                mid = row[f"{laptop}_id"]
+                if mid:
+                    mgender_age = member_gender_map[mid]
+                    if mgender_age in output:
+                        output[mgender_age] += 1
+                    else:
+                        output[mgender_age] = 1
+
+        fieldnames = ["Gender", "Age group", "Count of members"]
+        writer = csv.writer(response)
+        writer.writerow(fieldnames)
+        for k,v in output.items():
+            print(k[1])
+            writer.writerow([k[0], k[1], v])
+        return response
+    
+    @admin.action(description="R4 - Generate Gender wise report of Most/Least frequent user")
+    def generate_r4(modeladmin, request, queryset):
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=R4.csv'
         request_json = dict(request.POST)
         library = request_json["library"][0]
         start_day = request_json["start_day"][0]
@@ -209,9 +252,42 @@ class SlotAdmin(admin.ModelAdmin):
             writer.writerow([k, v[0], v[1]])
         return response
     
+    @admin.action(description="R7 - Generate list of every member who took the slot")
+    def generate_r7(modeladmin, request, queryset):
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=R7.csv'
+        request_json = dict(request.POST)
+        library = request_json["library"][0]
+        start_day = request_json["start_day"][0]
+        end_day = request_json["end_day"][0]
+        laptop_list = list(filter(lambda x: x.startswith("laptop"), [x.name for x in Slot._meta.get_fields()]))
+        results = get_slot_results(library, start_day, end_day)
+        member_results = get_member_results()
+        member_gender_map = {}
+
+        for row in member_results:
+            member_gender_map[row['member_id']] = (row['member_name'], row['gender'], row['age'])
+
+        output = {}
+
+        for row in results:
+            for laptop in laptop_list:
+                mid = row[f"{laptop}_id"]
+                if mid:
+                    member_info = member_gender_map[mid]
+                    if mid not in output:
+                        output[mid] = member_info
+
+        fieldnames = ["Member ID", "Member Name", "Gender", "Age"]
+        writer = csv.writer(response)
+        writer.writerow(fieldnames)
+        for k,v in output.items():
+            writer.writerow([k, v[0], v[1], v[2]])
+        return response
+    
     # This is for not having to select any existing slot in case of generating slots
     def changelist_view(self, request, extra_context=None):
-        if 'action' in request.POST and request.POST['action'] in ['generate_r1', 'generate_r2', 'generate_r3']:
+        if 'action' in request.POST and request.POST['action'] in ['generate_r1', 'generate_r2', 'generate_r3', 'generate_r4', 'generate_r7']:
             if not request.POST.getlist(ACTION_CHECKBOX_NAME):
                 post = request.POST.copy()
                 post.update({ACTION_CHECKBOX_NAME: str(Slot.objects.first().id)})
@@ -222,6 +298,8 @@ class SlotAdmin(admin.ModelAdmin):
         'generate_r1',
         'generate_r2',
         'generate_r3',
+        'generate_r4',
+        'generate_r7',
     )
 
 admin.site.register(Slot, SlotAdmin)
