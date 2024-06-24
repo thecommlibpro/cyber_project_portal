@@ -75,6 +75,8 @@ class SlotAdmin(admin.ModelAdmin):
     R2 - Generate Gender wise report of members
     R3 - Generate Gender and Age wise report of members
     R4 - Generate Gender wise report of Most/Least frequent user
+    R5 - Generate Most/Least popular time of the day
+    R6 - Generate Gender and age wise Most/Least popular time of the day
     R7 - Generate list of every member who took the slot
     '''
     @admin.action(description="R1 - Generate Gender wise report of UNIQUE members")
@@ -252,6 +254,92 @@ class SlotAdmin(admin.ModelAdmin):
             writer.writerow([k, v[0], v[1]])
         return response
     
+    @admin.action(description="R5 - Generate Most/Least popular time of the day")
+    def generate_r5(modeladmin, request, queryset):
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=R5.csv'
+        request_json = dict(request.POST)
+        print(request_json)
+        library = request_json["library"][0]
+        start_day = request_json["start_day"][0]
+        end_day = request_json["end_day"][0]
+        laptop_list = list(filter(lambda x: x.startswith("laptop"), [x.name for x in Slot._meta.get_fields()]))
+        results = get_slot_results(library, start_day, end_day)
+        
+        slot_freq = {}
+        
+        for row in results:
+            slot_time = row["datetime"].strftime("%I %p")
+            for laptop in laptop_list:
+                mid = row[f"{laptop}_id"]
+                if mid:
+                    if slot_time in slot_freq:
+                        slot_freq[slot_time] += 1
+                    else:
+                        slot_freq[slot_time] = 1
+
+        most_slot_freq = " | ".join([k for (k,v) in slot_freq.items() if v == max(slot_freq.values())])
+        least_slot_freq = " | ".join([k for (k,v) in slot_freq.items() if v == min(slot_freq.values())])
+
+        fieldnames = ["Most popular time", "Least popular time"]
+        writer = csv.writer(response)
+        writer.writerow(fieldnames)
+        writer.writerow([most_slot_freq, least_slot_freq])
+        return response
+    
+    @admin.action(description="R6 - Generate Gender and Age wise Most/Least popular time of the day")
+    def generate_r6(modeladmin, request, queryset):
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=R6.csv'
+        request_json = dict(request.POST)
+        print(request_json)
+        library = request_json["library"][0]
+        start_day = request_json["start_day"][0]
+        end_day = request_json["end_day"][0]
+        laptop_list = list(filter(lambda x: x.startswith("laptop"), [x.name for x in Slot._meta.get_fields()]))
+        results = get_slot_results(library, start_day, end_day)
+        member_results = get_member_results()
+        member_gender_map = {}
+
+        for row in member_results:
+            age = row['age']
+            if age >= 18:
+                age = '18+'
+            else:
+                age = '11-18'
+            member_gender_map[row['member_id']] = (row['gender'], age)
+        
+        # {("Male", "11-18"): {"11 am": 4, "2pm": 5, "3pm":4}, ("Female", "11-18"): {"11 am": 2, "2pm": 5, "3pm":4}}
+        slot_freq = {}
+        
+        for row in results:
+            slot_time = row["datetime"].strftime("%I %p")
+            for laptop in laptop_list:
+                mid = row[f"{laptop}_id"]
+                if mid:
+                    minfo = member_gender_map[mid]
+                    mslotfreq = slot_freq.get(minfo)
+                    if mslotfreq:
+                        if slot_time in mslotfreq:
+                            mslotfreq[slot_time] += 1
+                        else:
+                            mslotfreq[slot_time] = 1
+                    else:
+                        slot_freq[minfo] = {slot_time: 1}
+
+        for group, group_slot_freq in slot_freq.items():
+            most_group_freq = " | ".join([k for (k,v) in group_slot_freq.items() if v == max(group_slot_freq.values())])
+            least_group_freq = " | ".join([k for (k,v) in group_slot_freq.items() if v == min(group_slot_freq.values())])
+            slot_freq[group] = (most_group_freq, least_group_freq)
+
+        print(slot_freq)
+        fieldnames = ["Gender", "Age group", "Most popular time", "Least popular time"]
+        writer = csv.writer(response)
+        writer.writerow(fieldnames)
+        for k,v in slot_freq.items():
+            writer.writerow([k[0], k[1], v[0], v[1]])
+        return response
+    
     @admin.action(description="R7 - Generate list of every member who took the slot")
     def generate_r7(modeladmin, request, queryset):
         response = HttpResponse(content_type='text/csv')
@@ -287,7 +375,7 @@ class SlotAdmin(admin.ModelAdmin):
     
     # This is for not having to select any existing slot in case of generating slots
     def changelist_view(self, request, extra_context=None):
-        if 'action' in request.POST and request.POST['action'] in ['generate_r1', 'generate_r2', 'generate_r3', 'generate_r4', 'generate_r7']:
+        if 'action' in request.POST and request.POST['action'] in ['generate_r1', 'generate_r2', 'generate_r3', 'generate_r4', 'generate_r5', 'generate_r6', 'generate_r7']:
             if not request.POST.getlist(ACTION_CHECKBOX_NAME):
                 post = request.POST.copy()
                 post.update({ACTION_CHECKBOX_NAME: str(Slot.objects.first().id)})
@@ -299,6 +387,8 @@ class SlotAdmin(admin.ModelAdmin):
         'generate_r2',
         'generate_r3',
         'generate_r4',
+        'generate_r5',
+        'generate_r6',
         'generate_r7',
     )
 
