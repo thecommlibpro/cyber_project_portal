@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-n2vibs6%=s-d^ja^p9h)h-sj@!29!zz^^^f*3ax^y@=q55g@qc'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['portal.thecommunitylibraryproject.org', '70.34.218.218', 'localhost',]
 

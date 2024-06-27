@@ -168,9 +168,9 @@ class SlotAdmin(admin.ModelAdmin):
         for row in member_results:
             age = row['age']
             if age >= 18:
-                age = '18+'
+                age = '18+ years'
             else:
-                age = '11-18'
+                age = '11-18 years'
             member_gender_map[row['member_id']] = (row['gender'], age)
 
         output = {}
@@ -189,7 +189,6 @@ class SlotAdmin(admin.ModelAdmin):
         writer = csv.writer(response)
         writer.writerow(fieldnames)
         for k,v in output.items():
-            print(k[1])
             writer.writerow([k[0], k[1], v])
         return response
     
@@ -259,7 +258,6 @@ class SlotAdmin(admin.ModelAdmin):
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename=R5.csv'
         request_json = dict(request.POST)
-        print(request_json)
         library = request_json["library"][0]
         start_day = request_json["start_day"][0]
         end_day = request_json["end_day"][0]
@@ -292,7 +290,6 @@ class SlotAdmin(admin.ModelAdmin):
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename=R6.csv'
         request_json = dict(request.POST)
-        print(request_json)
         library = request_json["library"][0]
         start_day = request_json["start_day"][0]
         end_day = request_json["end_day"][0]
@@ -304,12 +301,12 @@ class SlotAdmin(admin.ModelAdmin):
         for row in member_results:
             age = row['age']
             if age >= 18:
-                age = '18+'
+                age = '18+ years'
             else:
-                age = '11-18'
+                age = '11-18 years'
             member_gender_map[row['member_id']] = (row['gender'], age)
         
-        # {("Male", "11-18"): {"11 am": 4, "2pm": 5, "3pm":4}, ("Female", "11-18"): {"11 am": 2, "2pm": 5, "3pm":4}}
+        # {("Male", "11-18 years"): {"11 am": 4, "2pm": 5, "3pm":4}, ("Female", "11-18 years"): {"11 am": 2, "2pm": 5, "3pm":4}}
         slot_freq = {}
         
         for row in results:
@@ -332,7 +329,6 @@ class SlotAdmin(admin.ModelAdmin):
             least_group_freq = " | ".join([k for (k,v) in group_slot_freq.items() if v == min(group_slot_freq.values())])
             slot_freq[group] = (most_group_freq, least_group_freq)
 
-        print(slot_freq)
         fieldnames = ["Gender", "Age group", "Most popular time", "Least popular time"]
         writer = csv.writer(response)
         writer.writerow(fieldnames)
