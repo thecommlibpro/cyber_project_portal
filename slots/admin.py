@@ -246,6 +246,10 @@ class SlotAdmin(admin.ModelAdmin):
                         min_max_gender_map[gender][ind] = mid_mname
                     else:
                         min_max_gender_map[gender][ind] += f" | {mid_mname}"
+            if min_max_gender_map[gender][0]:
+                min_max_gender_map[gender][0] = f"[{str(mostf_count)}] " + min_max_gender_map[gender][0]
+            if min_max_gender_map[gender][1]:
+                min_max_gender_map[gender][1] = f"[{str(leastf_count)}] " + min_max_gender_map[gender][1]
         fieldnames = ["Gender", "Most frequent member", "Least frequent member"]
         writer = csv.writer(response)
         writer.writerow(fieldnames)
