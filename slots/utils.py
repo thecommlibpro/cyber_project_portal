@@ -59,7 +59,24 @@ def check_if_member_more_than_11_years(request):
     member_age = Member.objects.filter(member_id=member_id)[0].age
     if member_age < 11:
         raise forms.ValidationError(request=request, message='Member has to be of age 11 years or older')
-    
+
+
+def check_time_slot_for_age_group(member_id, slot_datetime, library):
+    if library != LibraryNames.TCLP_04:
+        return
+
+    member_age = Member.objects.filter(member_id=member_id)[0].age
+    if member_age < 16:
+        if slot_time := slot_datetime.time():
+            if slot_time < parse("12:00 pm").time() or slot_time > parse("5:30 pm").time():
+                raise forms.ValidationError(
+                    f"Member {member_id} is below 16 years and can only take slots from 12:00 pm to 5:30 pm")
+    else:
+        if slot_time := slot_datetime.time():
+            if slot_time < parse("6:00 pm").time() or slot_time > parse("8:00 pm").time():
+                raise forms.ValidationError(
+                    f"Member {member_id} is above 16 years and can only take slots from 6:00 pm to 8:00 pm")
+
 def get_member_results():
     cursor = connection.cursor()
     cursor.execute(f"SELECT * FROM members_member")
