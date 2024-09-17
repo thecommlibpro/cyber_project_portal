@@ -9,6 +9,9 @@ from slots.models import Slot, Member
 from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
 
+from .utils import check_time_slot_for_age_group
+
+
 class MemberWidget(s2forms.ModelSelect2Widget):
     search_fields = [
         "member_id__icontains",
@@ -43,6 +46,10 @@ class SlotForm(forms.ModelForm):
     On Saturdays:
     6. 5 laptops (education, for all, reserved for girls) are only for girls, transgender, and non-binary members (no male member can take this slot, even when it is empty)  
     7. Alternative days rules not applicable for Girls, trans and NB people on Saturdays. 
+
+    Age related rules:
+    8. Members below 16 years of age can only take slots from 12:00 pm to 5:30 pm
+    9. Members above 16 years of age can only take slots from 6:00 pm to 8:00 pm
     '''
     def clean(self):
         cleaned_data = super().clean()
@@ -96,6 +103,12 @@ class SlotForm(forms.ModelForm):
                         non_male_laptop_list = ["laptop_non_male_1", "laptop_non_male_2"]
                     if changed_field in non_male_laptop_list:
                         raise forms.ValidationError(f"Member {member_id} is male and not allowed to take laptop {changed_field}")
+
+        #8, #9
+        for changed_field in changed_data:
+            if cleaned_data[changed_field]:
+                member_id = cleaned_data[changed_field].member_id
+                check_time_slot_for_age_group(member_id, cleaned_data["datetime"], library)
 
         return cleaned_data
 
