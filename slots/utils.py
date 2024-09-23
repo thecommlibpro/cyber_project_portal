@@ -68,12 +68,12 @@ def check_time_slot_for_age_group(member_id, slot_datetime, library):
     member_age = Member.objects.filter(member_id=member_id)[0].age
     if member_age < 16:
         if slot_time := slot_datetime.time():
-            if slot_time < parse("12:00 pm").time() or slot_time > parse("5:30 pm").time():
+            if slot_time < parse("12:00 pm").time() or slot_time > parse("4:30 pm").time():
                 raise forms.ValidationError(
                     f"Member {member_id} is below 16 years and can only take slots from 12:00 pm to 5:30 pm")
     else:
         if slot_time := slot_datetime.time():
-            if slot_time < parse("6:00 pm").time() or slot_time > parse("8:00 pm").time():
+            if slot_time < parse("5:00 pm").time() or slot_time > parse("8:00 pm").time():
                 raise forms.ValidationError(
                     f"Member {member_id} is above 16 years and can only take slots from 6:00 pm to 8:00 pm")
 
