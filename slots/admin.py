@@ -1,6 +1,7 @@
+from collections import defaultdict
 from typing import Any
 
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Sum
 from django.http import HttpResponse
 from django.contrib import admin
 from .models import Slot
@@ -424,6 +425,32 @@ class SlotAdmin(admin.ModelAdmin):
 
         return response
 
+    @admin.action(description="R9 - Generate gender-wise education slots report")
+    def generate_r9(modeladmin, request, queryset):
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=R9.csv'
+        library = LibraryNames(request.POST.get('library'))
+
+        member_laptop_counts = Member.objects.annotate(
+            count=Count(
+                'laptop_education',
+                filter=Q(laptop_education__library=library)
+            )
+        )
+        writer = csv.writer(response)
+
+        gender_counts = defaultdict(int)
+
+        for member in member_laptop_counts:
+            gender_counts[member.gender] += member.count
+
+        writer.writerow(["Gender", "Slots"])
+
+        for gender in gender_counts:
+            writer.writerow((gender, gender_counts[gender]))
+
+        return response
+
     # This is for not having to select any existing slot in case of generating slots
     def changelist_view(self, request, extra_context=None):
         if 'action' in request.POST and request.POST['action'] in ['generate_r1', 'generate_r2', 'generate_r3', 'generate_r4', 'generate_r5', 'generate_r6', 'generate_r7']:
@@ -442,6 +469,7 @@ class SlotAdmin(admin.ModelAdmin):
         'generate_r6',
         'generate_r7',
         'generate_r8',
+        'generate_r9',
     )
 
 admin.site.register(Slot, SlotAdmin)
