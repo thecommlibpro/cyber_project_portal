@@ -5,7 +5,7 @@ from django.forms.utils import ErrorList
 from django_select2 import forms as s2forms
 from django import forms
 from . import models
-from slots.models import Slot, Member
+from slots.models import Slot, Member, LibraryNames
 from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
 
@@ -31,8 +31,10 @@ class SlotForm(forms.ModelForm):
             "laptop_non_male_2": MemberWidget,
             "laptop_education": MemberWidget,
             "laptop_disability": MemberWidget,
+            "laptop_adult_common_1": MemberWidget,
+            "laptop_adult_non_male": MemberWidget,
         }
-    
+
     '''
     Rules for member slot management system -
     1. members have to be at least 11 years old.
@@ -50,6 +52,10 @@ class SlotForm(forms.ModelForm):
     Age related rules:
     8. Members below 16 years of age can only take slots from 12:00 pm to 5:30 pm
     9. Members above 16 years of age can only take slots from 6:00 pm to 8:00 pm
+    10. 2 laptops (1 common, 1 non-male) is reserved for adults.
+
+    Library specific rules:
+    11. Adult laptops are only for South Ex library
     '''
     def clean(self):
         cleaned_data = super().clean()
@@ -100,7 +106,7 @@ class SlotForm(forms.ModelForm):
                         non_male_laptop_list = laptop_list[:]
                         non_male_laptop_list.remove("laptop_disability")
                     else:
-                        non_male_laptop_list = ["laptop_non_male_1", "laptop_non_male_2"]
+                        non_male_laptop_list = ["laptop_non_male_1", "laptop_non_male_2", "laptop_adult_non_male"]
                     if changed_field in non_male_laptop_list:
                         raise forms.ValidationError(f"Member {member_id} is male and not allowed to take laptop {changed_field}")
 
@@ -108,7 +114,23 @@ class SlotForm(forms.ModelForm):
         for changed_field in changed_data:
             if cleaned_data[changed_field]:
                 member_id = cleaned_data[changed_field].member_id
-                check_time_slot_for_age_group(member_id, cleaned_data["datetime"], library)
+
+                if changed_field not in ["laptop_adult_common_1", "laptop_adult_non_male"]:
+                    check_time_slot_for_age_group(member_id, cleaned_data["datetime"], library)
+
+        #10
+        for changed_field in changed_data:
+            if cleaned_data[changed_field]:
+                member_id = cleaned_data[changed_field].member_id
+                if Member.objects.filter(member_id=member_id)[0].age < 16:
+                    if changed_field in ["laptop_adult_common_1", "laptop_adult_non_male"]:
+                        raise forms.ValidationError(f"Member {member_id} is below 16 years and cannot take laptop {changed_field}")
+
+        #11
+        for changed_field in changed_data:
+            if cleaned_data[changed_field]:
+                if library != LibraryNames.TCLP_04 and changed_field in ["laptop_adult_common_1", "laptop_adult_non_male"]:
+                    raise forms.ValidationError(f"Adult laptops are only for South Ex library")
 
         return cleaned_data
 

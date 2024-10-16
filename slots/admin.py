@@ -1,4 +1,7 @@
+from collections import defaultdict
 from typing import Any
+
+from django.db.models import Count, Q, Sum
 from django.http import HttpResponse
 from django.contrib import admin
 from .models import Slot
@@ -41,8 +44,9 @@ class SlotAdmin(admin.ModelAdmin):
         'wrapped_field_laptop_non_male_2',
         'wrapped_field_laptop_education',
         'wrapped_field_laptop_disability',
+        'wrapped_field_laptop_adult_common_1',
+        'wrapped_field_laptop_adult_non_male',
     )
-
 
     wrapped_field_laptop_common_1 = easy.SimpleAdminField(lambda x: linebreaksbr(x.laptop_common_1) if x.laptop_common_1 else "", 'Laptop for All - 1', 'Laptop for All - 1')
     wrapped_field_laptop_common_2 = easy.SimpleAdminField(lambda x: linebreaksbr(x.laptop_common_2) if x.laptop_common_2 else "", "Laptop for All - 2", "Laptop for All - 2")
@@ -50,6 +54,8 @@ class SlotAdmin(admin.ModelAdmin):
     wrapped_field_laptop_non_male_2 = easy.SimpleAdminField(lambda x: linebreaksbr(x.laptop_non_male_2) if x.laptop_non_male_2 else "", "Laptop for Girls, T, NB - 2", "Laptop for Girls, T, NB - 2")
     wrapped_field_laptop_education = easy.SimpleAdminField(lambda x: linebreaksbr(x.laptop_education) if x.laptop_education else "", "Laptop for Education", "Laptop for Education")
     wrapped_field_laptop_disability = easy.SimpleAdminField(lambda x: linebreaksbr(x.laptop_disability) if x.laptop_disability else "", "Laptop for P w Disabilities", "Laptop for P w Disabilities")
+    wrapped_field_laptop_adult_common_1 = easy.SimpleAdminField(lambda x: linebreaksbr(x.laptop_adult_common_1) if x.laptop_adult_common_1 else "", "Laptop for adults - Common", "Laptop for adults - Common")
+    wrapped_field_laptop_adult_non_male = easy.SimpleAdminField(lambda x: linebreaksbr(x.laptop_adult_common_1) if x.laptop_adult_common_1 else "", "Laptop for adults - T, NB, and Women", "Laptop for adults - T, NB, and Women")
 
     @admin.display(description='Slot time')
     def get_time(self, obj):
@@ -78,6 +84,7 @@ class SlotAdmin(admin.ModelAdmin):
     R5 - Generate Most/Least popular time of the day
     R6 - Generate Gender and age wise Most/Least popular time of the day
     R7 - Generate list of every member who took the slot
+    R8 - Generate slot count for all members
     '''
     @admin.action(description="R1 - Generate Gender wise report of UNIQUE members")
     def generate_r1(modeladmin, request, queryset):
@@ -372,7 +379,81 @@ class SlotAdmin(admin.ModelAdmin):
         for k,v in output.items():
             writer.writerow([k, v[0], v[1], v[2]])
         return response
-    
+
+    @admin.action(description="R8 - Generate slot count for all members")
+    def generate_r8(modeladmin, request, queryset):
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=R8.csv'
+
+        library = LibraryNames(request.POST.get('library'))
+
+        values = list(Member.objects.filter(
+            age__range=(13, 18),
+        ).annotate(
+            laptop_common_1_count=Count('laptop_common_1', filter=Q(laptop_common_1__library=library)),
+            laptop_common_2_count=Count('laptop_common_2', filter=Q(laptop_common_2__library=library)),
+            laptop_non_male_1_count=Count('laptop_non_male_1', filter=Q(laptop_non_male_1__library=library)),
+            laptop_non_male_2_count=Count('laptop_non_male_1', filter=Q(laptop_non_male_2__library=library)),
+            laptop_education_count=Count('laptop_education', filter=Q(laptop_education__library=library)),
+            laptop_disability_count=Count('laptop_disability', filter=Q(laptop_disability__library=library)),
+        ).values_list(
+            'member_id',
+            'member_name',
+            'gender',
+            'laptop_common_1_count',
+            'laptop_common_2_count',
+            'laptop_non_male_1_count',
+            'laptop_non_male_2_count',
+            'laptop_education_count',
+            'laptop_disability_count',
+        ))
+
+        # convert list of values to csv file
+        fieldnames = [
+            "Member ID",
+            "Member Name",
+            "Gender",
+            "Laptop Common 1 Count",
+            "Laptop Common 2 Count",
+            "Laptop Non Male 1 Count",
+            "Laptop Non Mail 2 Count",
+            "Laptop Education Count",
+            "Laptop Disability Count",
+        ]
+
+        writer = csv.writer(response)
+        writer.writerow(fieldnames)
+        for value in values:
+            writer.writerow([str(_).strip() for _ in value])
+
+        return response
+
+    @admin.action(description="R9 - Generate gender-wise education slots report")
+    def generate_r9(modeladmin, request, queryset):
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=R9.csv'
+        library = LibraryNames(request.POST.get('library'))
+
+        member_laptop_counts = Member.objects.annotate(
+            count=Count(
+                'laptop_education',
+                filter=Q(laptop_education__library=library)
+            )
+        )
+        writer = csv.writer(response)
+
+        gender_counts = defaultdict(int)
+
+        for member in member_laptop_counts:
+            gender_counts[member.gender] += member.count
+
+        writer.writerow(["Gender", "Slots"])
+
+        for gender in gender_counts:
+            writer.writerow((gender, gender_counts[gender]))
+
+        return response
+
     # This is for not having to select any existing slot in case of generating slots
     def changelist_view(self, request, extra_context=None):
         if 'action' in request.POST and request.POST['action'] in ['generate_r1', 'generate_r2', 'generate_r3', 'generate_r4', 'generate_r5', 'generate_r6', 'generate_r7']:
@@ -390,6 +471,8 @@ class SlotAdmin(admin.ModelAdmin):
         'generate_r5',
         'generate_r6',
         'generate_r7',
+        'generate_r8',
+        'generate_r9',
     )
 
 admin.site.register(Slot, SlotAdmin)
