@@ -26,7 +26,12 @@ SECRET_KEY = 'django-insecure-n2vibs6%=s-d^ja^p9h)h-sj@!29!zz^^^f*3ax^y@=q55g@qc
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['portal.thecommunitylibraryproject.org', '70.34.218.218', 'localhost',]
+ALLOWED_HOSTS = [
+    'portal.thecommunitylibraryproject.org',
+    '70.34.218.218',
+    'localhost',
+    '143.244.141.173',
+]
 
 CSRF_TRUSTED_ORIGINS = ['https://portal.thecommunitylibraryproject.org',]
 
@@ -92,7 +97,7 @@ WSGI_APPLICATION = 'portal.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': os.getenv('DATABASE_FILE', BASE_DIR / 'db.sqlite3'),
     }
 }
 
