@@ -17,6 +17,7 @@ Including another URLconf
 import re
 
 from django.contrib import admin
+from django.shortcuts import redirect
 from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
@@ -26,6 +27,7 @@ from django.views.static import serve
 #print(settings.MEDIA_URL, settings.MEDIA_ROOT)
 
 urlpatterns = [
+    re_path('$', lambda request: redirect('admin/', permanent=False), name='index'),
     path('admin/', admin.site.urls),
     path("slots/", include("slots.urls")),
     re_path(
