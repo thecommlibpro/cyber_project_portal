@@ -1,7 +1,7 @@
 from collections import defaultdict
 from typing import Any
 
-from django.db.models import Count, Q, Sum
+from django.db.models import Count, Q, Sum, Value, F
 from django.http import HttpResponse
 from django.contrib import admin
 from .models import Slot
@@ -84,7 +84,7 @@ class SlotAdmin(admin.ModelAdmin):
     R5 - Generate Most/Least popular time of the day
     R6 - Generate Gender and age wise Most/Least popular time of the day
     R7 - Generate list of every member who took the slot
-    R8 - Generate slot count for all members
+    R8 - Generate slot count for all members (13yo - 16yo)
     '''
     @admin.action(description="R1 - Generate Gender wise report of UNIQUE members")
     def generate_r1(modeladmin, request, queryset):
@@ -380,51 +380,95 @@ class SlotAdmin(admin.ModelAdmin):
             writer.writerow([k, v[0], v[1], v[2]])
         return response
 
-    @admin.action(description="R8 - Generate slot count for all members")
+    @admin.action(description="R8 - Generate slot count for all members (13yo - 16yo)")
     def generate_r8(modeladmin, request, queryset):
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename=R8.csv'
 
+        start_day = request.POST["start_day"]
+        end_day = request.POST["end_day"]
+
+        date_range = (parse(start_day), parse(end_day))
+
         library = LibraryNames(request.POST.get('library'))
 
-        values = list(Member.objects.filter(
-            age__range=(13, 18),
-        ).annotate(
-            laptop_common_1_count=Count('laptop_common_1', filter=Q(laptop_common_1__library=library)),
-            laptop_common_2_count=Count('laptop_common_2', filter=Q(laptop_common_2__library=library)),
-            laptop_non_male_1_count=Count('laptop_non_male_1', filter=Q(laptop_non_male_1__library=library)),
-            laptop_non_male_2_count=Count('laptop_non_male_1', filter=Q(laptop_non_male_2__library=library)),
-            laptop_education_count=Count('laptop_education', filter=Q(laptop_education__library=library)),
-            laptop_disability_count=Count('laptop_disability', filter=Q(laptop_disability__library=library)),
-        ).values_list(
-            'member_id',
-            'member_name',
-            'gender',
-            'laptop_common_1_count',
-            'laptop_common_2_count',
-            'laptop_non_male_1_count',
-            'laptop_non_male_2_count',
-            'laptop_education_count',
-            'laptop_disability_count',
-        ))
+        slots = Slot.objects.filter(datetime__range=date_range, library=library)
+        members = Member.objects.all()
+
+        member_map = {
+            member.member_id: {
+                'member_id': member.member_id.strip(),
+                'member_name': member.member_name.strip(),
+                'gender': member.gender,
+                'age': member.age,
+                'laptop_common_1': 0,
+                'laptop_common_2': 0,
+                'laptop_non_male_1': 0,
+                'laptop_non_male_2': 0,
+                'laptop_education': 0,
+                'laptop_disability': 0,
+            } for member in members
+        }
+        member_map[None] = {
+            'laptop_common_1': 0,
+            'laptop_common_2': 0,
+            'laptop_non_male_1': 0,
+            'laptop_non_male_2': 0,
+            'laptop_education': 0,
+            'laptop_disability': 0,
+        }
+
+        for slot in slots:
+            member_map[slot.laptop_common_1_id]['laptop_common_1'] += 1
+            member_map[slot.laptop_common_2_id]['laptop_common_2'] += 1
+            member_map[slot.laptop_non_male_1_id]['laptop_non_male_1'] += 1
+            member_map[slot.laptop_non_male_2_id]['laptop_non_male_2'] += 1
+            member_map[slot.laptop_education_id]['laptop_education'] += 1
+            member_map[slot.laptop_disability_id]['laptop_disability'] += 1
+
+        del member_map[None]
+
+        for member in member_map.values():
+            member['total'] = sum([member[k] if k.startswith('laptop_') else 0 for k in member.keys()])
 
         # convert list of values to csv file
         fieldnames = [
             "Member ID",
             "Member Name",
             "Gender",
+            "Age",
             "Laptop Common 1 Count",
             "Laptop Common 2 Count",
             "Laptop Non Male 1 Count",
             "Laptop Non Mail 2 Count",
             "Laptop Education Count",
             "Laptop Disability Count",
+            "Total",
         ]
 
         writer = csv.writer(response)
         writer.writerow(fieldnames)
-        for value in values:
-            writer.writerow([str(_).strip() for _ in value])
+
+        for member in sorted(member_map.values(), key=lambda x: x['total'], reverse=True):
+            if member['age'] < 13 or member['age'] > 16:
+                continue
+
+            if member['total'] == 0:
+                continue
+
+            writer.writerow([
+                member['member_id'],
+                member['member_name'],
+                member['gender'],
+                member['age'],
+                member['laptop_common_1'],
+                member['laptop_common_2'],
+                member['laptop_non_male_1'],
+                member['laptop_non_male_2'],
+                member['laptop_education'],
+                member['laptop_disability'],
+                member['total'],
+            ])
 
         return response
 
@@ -434,10 +478,15 @@ class SlotAdmin(admin.ModelAdmin):
         response['Content-Disposition'] = 'attachment; filename=R9.csv'
         library = LibraryNames(request.POST.get('library'))
 
+        start_day = request.POST["start_day"]
+        end_day = request.POST["end_day"]
+
+        date_range = (parse(start_day), parse(end_day))
+
         member_laptop_counts = Member.objects.annotate(
             count=Count(
                 'laptop_education',
-                filter=Q(laptop_education__library=library)
+                filter=Q(laptop_education__library=library, laptop_education__datetime__range=date_range),
             )
         )
         writer = csv.writer(response)
