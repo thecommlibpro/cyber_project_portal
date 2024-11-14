@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}The Community Library Project{% endblock %}</title>
+    {% load static %}
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="min-h-screen flex flex-col bg-gray-100 text-gray-800">
+
+<!-- Header Section -->
+<header class="bg-green-900 text-yellow-300 py-4">
+    <div class="container mx-auto flex items-center justify-between px-4">
+        <a href="/" class="flex items-center">
+            <img src="/admin-interface/logo/Blue_logo_pDF-1.png" alt="Logo" class="h-10 w-10 mr-2">
+            <span class="text-2xl font-normal">The Community Library Project</span>
+        </a>
+        <nav>
+            <ul class="flex space-x-4">
+                <li><a href="/" class="hover:text-yellow-500">Admin</a></li>
+            </ul>
+        </nav>
+    </div>
+</header>
+
+<!-- Main Content Section -->
+<main class="flex-grow container mx-auto py-10 px-4">
+    {% block content %}{% endblock %}
+</main>
+
+<!-- Footer Section -->
+<footer class="bg-gray-800 text-white py-4">
+    <div class="container mx-auto text-center">
+        <p>The Community Library Project</p>
+    </div>
+</footer>
+
+</body>
+</html>

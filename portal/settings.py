@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'rangefilter',
     'django_select2',
+    'entrylog.apps.EntrylogConfig',
 ]
 
 MIDDLEWARE = [
