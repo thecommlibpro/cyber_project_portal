@@ -1,5 +1,5 @@
 from django.contrib import admin
-from rangefilter.filters import DateRangeFilterBuilder, DateTimeRangeFilterBuilder
+from rangefilter.filters import DateRangeFilterBuilder
 
 from .models import EntryLog
 

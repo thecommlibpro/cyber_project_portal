@@ -5,7 +5,11 @@ from slots.models import LibraryNames
 
 
 class EntryLog(models.Model):
-    member = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='entry_logs', null=False, blank=False)
+    member = models.ForeignKey(
+        Member,
+        on_delete=models.CASCADE,
+        related_name='member_logs',
+    )
     library = models.CharField(choices=LibraryNames.choices, max_length=50, null=False, blank=False)
     entered_date = models.DateField(auto_now_add=True)
     entered_time = models.TimeField(auto_now_add=True)

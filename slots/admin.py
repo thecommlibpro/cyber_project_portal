@@ -64,13 +64,28 @@ class SlotAdmin(admin.ModelAdmin):
     @admin.display(ordering='member__member_name', description='Member name')
     def get_member_name(self, obj):
         return obj.member and obj.member.member_name
-    
+
     @admin.display(ordering='member__gender', description='Member gender')
     def get_member_gender(self, obj):
         return obj.member and obj.member.gender
-    
+
     search_fields = (
-        'member__member_name',
+        'laptop_common_1__member_id',
+        'laptop_common_1__member_name',
+        'laptop_common_2__member_id',
+        'laptop_common_2__member_name',
+        'laptop_non_male_1__member_id',
+        'laptop_non_male_1__member_name',
+        'laptop_non_male_2__member_id',
+        'laptop_non_male_2__member_name',
+        'laptop_education__member_id',
+        'laptop_education__member_name',
+        'laptop_disability__member_id',
+        'laptop_disability__member_name',
+        'laptop_adult_common_1__member_id',
+        'laptop_adult_common_1__member_name',
+        'laptop_adult_non_male__member_id',
+        'laptop_adult_non_male__member_name',
     )
 
     list_filter = ('library',("datetime", DateRangeFilterBuilder()), 'datetime')
@@ -85,6 +100,7 @@ class SlotAdmin(admin.ModelAdmin):
     R6 - Generate Gender and age wise Most/Least popular time of the day
     R7 - Generate list of every member who took the slot
     R8 - Generate slot count for all members (13yo - 16yo)
+    R9 - Generate gender-wise education slots report
     '''
     @admin.action(description="R1 - Generate Gender wise report of UNIQUE members")
     def generate_r1(modeladmin, request, queryset):
@@ -123,7 +139,7 @@ class SlotAdmin(admin.ModelAdmin):
         for k,v in output.items():
             writer.writerow([k, v])
         return response
-    
+
     @admin.action(description="R2 - Generate Gender wise report of members")
     def generate_r2(modeladmin, request, queryset):
         response = HttpResponse(content_type='text/csv')
@@ -158,7 +174,7 @@ class SlotAdmin(admin.ModelAdmin):
         for k,v in output.items():
             writer.writerow([k, v])
         return response
-    
+
     @admin.action(description="R3 - Generate Gender and Age wise report of members")
     def generate_r3(modeladmin, request, queryset):
         response = HttpResponse(content_type='text/csv')
@@ -198,7 +214,7 @@ class SlotAdmin(admin.ModelAdmin):
         for k,v in output.items():
             writer.writerow([k[0], k[1], v])
         return response
-    
+
     @admin.action(description="R4 - Generate Gender wise report of Most/Least frequent user")
     def generate_r4(modeladmin, request, queryset):
         response = HttpResponse(content_type='text/csv')
@@ -263,7 +279,7 @@ class SlotAdmin(admin.ModelAdmin):
         for k,v in min_max_gender_map.items():
             writer.writerow([k, v[0], v[1]])
         return response
-    
+
     @admin.action(description="R5 - Generate Most/Least popular time of the day")
     def generate_r5(modeladmin, request, queryset):
         response = HttpResponse(content_type='text/csv')
@@ -274,9 +290,9 @@ class SlotAdmin(admin.ModelAdmin):
         end_day = request_json["end_day"][0]
         laptop_list = list(filter(lambda x: x.startswith("laptop"), [x.name for x in Slot._meta.get_fields()]))
         results = get_slot_results(library, start_day, end_day)
-        
+
         slot_freq = {}
-        
+
         for row in results:
             slot_time = row["datetime"].strftime("%I %p")
             for laptop in laptop_list:
@@ -295,7 +311,7 @@ class SlotAdmin(admin.ModelAdmin):
         writer.writerow(fieldnames)
         writer.writerow([most_slot_freq, least_slot_freq])
         return response
-    
+
     @admin.action(description="R6 - Generate Gender and Age wise Most/Least popular time of the day")
     def generate_r6(modeladmin, request, queryset):
         response = HttpResponse(content_type='text/csv')
@@ -316,10 +332,10 @@ class SlotAdmin(admin.ModelAdmin):
             else:
                 age = '11-18 years'
             member_gender_map[row['member_id']] = (row['gender'], age)
-        
+
         # {("Male", "11-18 years"): {"11 am": 4, "2pm": 5, "3pm":4}, ("Female", "11-18 years"): {"11 am": 2, "2pm": 5, "3pm":4}}
         slot_freq = {}
-        
+
         for row in results:
             slot_time = row["datetime"].strftime("%I %p")
             for laptop in laptop_list:
@@ -346,7 +362,7 @@ class SlotAdmin(admin.ModelAdmin):
         for k,v in slot_freq.items():
             writer.writerow([k[0], k[1], v[0], v[1]])
         return response
-    
+
     @admin.action(description="R7 - Generate list of every member who took the slot")
     def generate_r7(modeladmin, request, queryset):
         response = HttpResponse(content_type='text/csv')

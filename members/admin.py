@@ -27,9 +27,11 @@ class MemberAdmin(admin.ModelAdmin):
         reader = csv.reader(csv_string.split('\n'), delimiter=';')
         for row in reader:
             if len(row) != 0 and row[0] != "cardnumber":
-                input_data = Member()
-                input_data.member_id = row[0]
-                input_data.member_name = row[1]
+                card_number = row[0].strip().upper()
+                input_data = Member.objects.filter(member_id=card_number).first() or Member()
+
+                input_data.member_id = card_number
+                input_data.member_name = row[1].strip()
                 input_data.gender = Member.Gender(row[2])
                 if row[3] != '':
                     dob = datetime.strptime(row[3], "%Y-%m-%d").date()
@@ -42,7 +44,7 @@ class MemberAdmin(admin.ModelAdmin):
         'import_members',
     )
     change_list_template = "slots/admin_form.html"
-    list_display = ("member_id", "member_name", "gender", "age", )
+    list_display = ("member_id", "member_name", "gender", "age", "uid")
     search_fields = (
         'member_name',
         'member_id',

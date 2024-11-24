@@ -147,13 +147,14 @@ class SlotForm(forms.ModelForm):
     # Except Education slot
     def check_if_member_enrolled_prev_day(self, member_id, library, date):
         laptop_list = list(filter(lambda x: x.startswith("laptop"), [x.name for x in Slot._meta.get_fields()]))
+        member_uid = Member.objects.filter(member_id=member_id).first().uid
         for laptop in laptop_list:
             #4
             if laptop != "laptop_education":
                 kwargs = {
                     "library": library,
                     "datetime__startswith": date,
-                    laptop: member_id
+                    laptop: member_uid,
                 }
                 filtered_query_set = Slot.objects.filter(**kwargs)
                 if len(filtered_query_set) != 0:
