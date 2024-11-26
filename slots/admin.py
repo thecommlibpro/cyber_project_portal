@@ -26,14 +26,6 @@ class GenerateSlotForm(ActionForm):
     end_day = forms.DateField(widget=AdminDateWidget, required=False)
 
 class SlotAdmin(admin.ModelAdmin):
-
-    def save_models(self, request: Any, obj: Any, form: Any, change: Any) -> None:
-        try:
-            check_if_member_more_than_11_years(request)
-            return super().save_model(request, obj, form, change)
-        except forms.ValidationError:
-            self.message_user(request=request, message='Member has to be of age 11 years or older', level=messages.ERROR)
-
     form = SlotForm
     action_form = GenerateSlotForm
     list_display = (

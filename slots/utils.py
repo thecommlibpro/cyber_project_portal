@@ -54,13 +54,6 @@ def check_if_male_member_enrolled_consecutive(request):
     if day:
         messages.add_message(request=request, level=messages.WARNING, message='This member has used the slot ' + day)
 
-def check_if_member_more_than_11_years(request):
-    member_id = request.POST["laptop_common_1"]
-    member_age = Member.objects.filter(member_id=member_id)[0].age
-    if member_age < 11:
-        raise forms.ValidationError(request=request, message='Member has to be of age 11 years or older')
-
-
 def check_time_slot_for_age_group(member_id, slot_datetime, library):
     if library != LibraryNames.TCLP_04:
         return

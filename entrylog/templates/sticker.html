@@ -1,0 +1,26 @@
+<form method="POST" action="{% url 'mark_sticker' %}" class="flex space-x-4 items-center">
+    {% csrf_token %}
+    <p class="text-blue-600 mb-6 text-3xl">Member is coming for the first time to TCLP. Give them a sticker?</p>
+
+    <input type="hidden" name="member_id" value="{{ member_id }}">
+
+    <!-- White Button -->
+    <button
+            type="submit"
+            name="sticker_given"
+            value="false"
+            class="bg-white hover:bg-gray-100 text-gray-800 font-bold py-2 px-4 border border-gray-300 rounded shadow"
+    >
+        No
+    </button>
+    <!-- Green Button -->
+    <button
+            type="submit"
+            name="sticker_given"
+            value="true"
+            class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded shadow"
+    >
+        Yes
+    </button>
+
+</form>

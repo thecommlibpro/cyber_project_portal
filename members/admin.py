@@ -52,7 +52,7 @@ class MemberAdmin(admin.ModelAdmin):
                 member.member_name = f"{row['first_name'].strip()} {row['last_name'].strip()}"
                 member.gender = Member.Gender(row['gender'].strip()) if row['gender'] else None
                 member.age = calculate_age(row['birth_date']) if row['birth_date'] else 0
-                member.footfall_date = date_parse(row['footfall_date']) if row['footfall_date'] else None
+                member.first_login_at = date_parse(row['footfall_date']) if row['footfall_date'] else None
                 member.cyber_project_enabled = row['enrolled_in_cyber_project'].strip() == 'Yes'
 
                 member.save()
@@ -72,6 +72,13 @@ class MemberAdmin(admin.ModelAdmin):
         "member_name",
         "gender",
         "age",
+        "cyber_project_enabled",
+        "first_login_at",
+    )
+    list_filter = (
+        'cyber_project_enabled',
+        'gender',
+        'age',
     )
     search_fields = (
         'member_name',

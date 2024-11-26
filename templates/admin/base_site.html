@@ -1,0 +1,8 @@
+{% extends "admin/base_site.html" %}
+
+{% block userlinks %}
+    <a href="{% url 'daily_log' %}" class="text-sm text-gray-500 hover:text-gray-800 ml-4">
+        Go to Daily Log
+    </a>
+    {{ block.super }}
+{% endblock %}

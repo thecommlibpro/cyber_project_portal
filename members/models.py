@@ -29,7 +29,7 @@ class Member(models.Model):
 
     age = models.IntegerField(null=True)
     is_sticker_received = models.BooleanField(default=None, null=True, blank=True)
-    first_login_at = models.DateTimeField(null=True)
+    first_login_at = models.DateTimeField(null=True, blank=True)
     cyber_project_enabled = models.BooleanField(default=False)
 
     class Meta:

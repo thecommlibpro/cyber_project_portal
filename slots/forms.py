@@ -70,10 +70,9 @@ class SlotForm(forms.ModelForm):
         for laptop_name in changed_data:
             if cleaned_data[laptop_name]:
                 member_id = cleaned_data[laptop_name].member_id
-                member_age = Member.objects.filter(member_id=member_id)[0].age
-                if member_age < 11:
-                    raise forms.ValidationError(f'Member {member_id} has to be of age 11 years or older')
-            
+                if not Member.objects.filter(member_id=member_id)[0].cyber_project_enabled:
+                    raise forms.ValidationError(f'Member {member_id} is not enrolled for cyber project')
+
         # 2
         member_list = []
         for laptop_name in laptop_list:

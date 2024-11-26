@@ -26,14 +26,14 @@ class EntryLogAdmin(admin.ModelAdmin):
         'member__member_name',
     )
 
-    def member_name(self, member):
-        return member.member_name
+    def member_name(self, entry_log):
+        return entry_log.member_name
 
     member_name.short_description = 'Member Name'
     member_name.admin_order_field = 'member__member_name'
 
-    def get_member_id(self, member):
-        return member.member_id
+    def get_member_id(self, entry_log):
+        return entry_log.member.member_id
 
     get_member_id.short_description = 'Member ID'
     get_member_id.admin_order_field = 'member__member_id'
