@@ -3,10 +3,54 @@
 {% block title %}TCLP - Daily Log{% endblock %}
 
 {% block content %}
+    <style>
+        /* Hide the modal background and content by default */
+        .hidden { display: none; }
+
+        /* Show modal background and content when checkbox is checked */
+        #modal-toggle:checked ~ label[for="modal-toggle"] {
+            display: block;
+        }
+
+        #modal-toggle:checked ~ .fixed.inset-0.flex {
+            display: flex;
+        }
+
+        /* Hide elements if the checkbox isn't checked */
+        .fixed.inset-0.flex {
+            display: none;
+        }
+
+        .fixed.inset-0.bg-gray-900.bg-opacity-50 {
+            display: none;
+        }
+
+    </style>
     <h1 class="text-3xl font-bold mb-6">Daily Log</h1>
 
     {% if message %}
         <p class="text-green-600 mb-4">{{ message }}</p>
+    {% endif %}
+
+    {% if message or error or warning %}
+        <!-- Hidden checkbox to control modal visibility -->
+        <input type="checkbox" id="modal-toggle" class="hidden" checked>
+
+        <!-- Modal Background -->
+        <label for="modal-toggle" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center z-50 cursor-pointer"></label>
+
+        <!-- Modal Content -->
+        <div class="fixed inset-0 flex items-center justify-center z-50 w-full">
+            <div class="bg-white rounded-lg shadow-lg max-w-3xl mx-auto p-6 text-center relative">
+                <h2 class="text-xl font-semibold mb-4 text-gray-800">Please note</h2>
+                <p class="text-red-600 mb-6 text-3xl">{{ error }}</p>
+                <p class="text-yellow-600 mb-6 text-3xl">{{ warning }}</p>
+                <p class="text-blue-600 mb-6 text-3xl">{{ message }}</p>
+                <label for="modal-toggle" class="inline-block bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded cursor-pointer">
+                    Close
+                </label>
+            </div>
+        </div>
     {% endif %}
 
     {% if error %}
@@ -30,7 +74,8 @@
             <label for="member_id" class="block text-gray-700 text-lg font-bold mb-2">Member ID:</label>
             <input type="text" id="member_id" name="member_id" required pattern="[A-Za-z0-9-]+"
                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                   placeholder="Enter your Member ID">
+                   placeholder="Enter your Member ID"
+                   oninput="this.value = this.value.toUpperCase()">
         </div>
 
         <div class="flex items-center justify-between mt-12">

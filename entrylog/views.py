@@ -9,12 +9,17 @@ from django.db import IntegrityError
 
 @staff_member_required
 def daily_log(request):
-    message = ""
-    error = ""
+    context = {
+        "form": LogForm(),
+        "message": '',
+        "error": '',
+        "warning": '',
+    }
 
     if request.method == "POST":
         form = LogForm(request.POST)
         if form.is_valid():
+            context['form'] = form
             member_id = form.cleaned_data['member_id']
             library = form.cleaned_data['library']
 
@@ -22,10 +27,11 @@ def daily_log(request):
             member = Member.objects.filter(member_id=member_id).first()
 
             if not member:
+                context['error'] = "Member not found"
                 return render(
                     request,
                     template_name='log.html',
-                    context={'form': form, 'error': 'Member not found.'},
+                    context=context,
                     status=404,
                 )
 
@@ -34,16 +40,13 @@ def daily_log(request):
             previous_entry = EntryLog.objects.filter(member=member, library=library, entered_date=today).first()
 
             if previous_entry:
-                error = f"Member {member_id} already logged in today at {previous_entry.entered_time}"
+                context['error'] = f"Member {member_id} already logged in today at {previous_entry.entered_time.strftime('%H:%M')}"
             else:
                 # If it doesn't exist, create a new entry
                 try:
                     EntryLog.objects.create(member=member, library=library, entered_date=today)
-                    message = "Member logged in."
+                    context['message'] = "Member logged in."
                 except IntegrityError:
-                    error = "Failed to create entry due to a conflict."
+                    context['error'] = "Failed to create entry due to a conflict."
 
-    else:
-        form = LogForm()
-
-    return render(request, 'log.html', {'form': form, 'message': message, 'error': error})
+    return render(request, 'log.html', context)

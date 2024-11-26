@@ -1,6 +1,8 @@
 import uuid
 
 from django.db import models
+from django.db.models.functions import Upper
+
 
 class Member(models.Model):
     uid = models.UUIDField(
@@ -26,8 +28,18 @@ class Member(models.Model):
     gender = models.CharField(max_length=30, choices=Gender.choices, default=Gender.female, null=True)
 
     age = models.IntegerField(null=True)
-    # is_sticker_received = models.BooleanField(default=None, null=True, blank=True)
-    # first_login_at = models.DateTimeField(null=True)
+    is_sticker_received = models.BooleanField(default=None, null=True, blank=True)
+    first_login_at = models.DateTimeField(null=True)
+    cyber_project_enabled = models.BooleanField(default=False)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                Upper('member_id'),
+                name='unique_uppercase_member_id',
+                violation_error_message='Member ID already exists',
+            ),
+        ]
 
     def __str__(self) -> str:
         return str(self.member_id) + " - " + str(self.member_name) + " - " + str(self.age) + " - " + str(self.gender)

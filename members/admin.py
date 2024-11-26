@@ -5,12 +5,12 @@ from django.contrib.admin.helpers import ActionForm, AdminForm
 from django import forms
 from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from datetime import datetime, date
+from dateutil.parser import parse as date_parse
+from dateutil.relativedelta import relativedelta
  
 def calculate_age(birthDate):
-    today = date.today()
-    age = today.year - birthDate.year - ((today.month, today.day) <
-         (birthDate.month, birthDate.day))
-    return age
+    birth_day = date_parse(birthDate)
+    return relativedelta(date.today(), birth_day).years
 
 class DataImport(ActionForm):
     
@@ -22,29 +22,57 @@ class MemberAdmin(admin.ModelAdmin):
 
     @admin.action(description="Import Members from file")
     def import_members(modeladmin, request, queryset):
-        ascii_file = request.FILES["file"]
-        csv_string = ascii_file.file.read().decode('ascii')
-        reader = csv.reader(csv_string.split('\n'), delimiter=';')
-        for row in reader:
-            if len(row) != 0 and row[0] != "cardnumber":
-                card_number = row[0].strip().upper()
-                input_data = Member.objects.filter(member_id=card_number).first() or Member()
+        csv_file = request.FILES["file"].read().decode('utf-8').splitlines()
+        reader = csv.DictReader(
+            csv_file,
+            fieldnames=[
+                'borrower_number',
+                'card_number',
+                'first_name',
+                'last_name',
+                'birth_date',
+                'library_code',
+                'enrolled_in_cyber_project',
+                'footfall_date',
+                'gender',
+            ],
+            delimiter=';',
+            quotechar='"',
+        )
 
-                input_data.member_id = card_number
-                input_data.member_name = row[1].strip()
-                input_data.gender = Member.Gender(row[2])
-                if row[3] != '':
-                    dob = datetime.strptime(row[3], "%Y-%m-%d").date()
-                    input_data.age = calculate_age(dob)
-                else:
-                    input_data.age = 0
-                input_data.save()
+        _ = next(reader)
+
+        count = 0
+
+        for row in reader:
+            try:
+                card_number = row['card_number'].strip().upper()
+                member = Member.objects.filter(member_id=card_number).first() or Member.objects.create(member_id=card_number)
+
+                member.member_name = f"{row['first_name'].strip()} {row['last_name'].strip()}"
+                member.gender = Member.Gender(row['gender'].strip()) if row['gender'] else None
+                member.age = calculate_age(row['birth_date']) if row['birth_date'] else 0
+                member.footfall_date = date_parse(row['footfall_date']) if row['footfall_date'] else None
+                member.cyber_project_enabled = row['enrolled_in_cyber_project'].strip() == 'Yes'
+
+                member.save()
+
+                count += 1
+                print(f"member count: {count}")
+            except Exception as e:
+                modeladmin.message_user(request, f"Error importing row {row}: {e}")
+
 
     actions = (
         'import_members',
     )
     change_list_template = "slots/admin_form.html"
-    list_display = ("member_id", "member_name", "gender", "age", "uid")
+    list_display = (
+        "member_id",
+        "member_name",
+        "gender",
+        "age",
+    )
     search_fields = (
         'member_name',
         'member_id',
