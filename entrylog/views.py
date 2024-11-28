@@ -50,7 +50,7 @@ def daily_log(request):
                     EntryLog.objects.create(member=member, library=library, entered_date=today)
 
                     context['message'] = "Member logged in."
-                    if not member.first_login_at and member.is_sticker_received is None:
+                    if member.first_login_at is None:
                         member.first_login_at = datetime.now()
                         member.save()
 
