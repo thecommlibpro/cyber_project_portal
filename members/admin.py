@@ -92,7 +92,7 @@ class MemberAdmin(admin.ModelAdmin):
             if not request.POST.getlist(ACTION_CHECKBOX_NAME):
                 post = request.POST.copy()
                 for u in Member.objects.all():
-                    post.update({ACTION_CHECKBOX_NAME: str(u.member_id)})
+                    post.update({ACTION_CHECKBOX_NAME: str(u.uid)})
                 request._set_post(post)
         return super(MemberAdmin, self).changelist_view(request, extra_context)
 
