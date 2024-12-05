@@ -45,5 +45,6 @@ class Member(models.Model):
         return str(self.member_id) + " - " + str(self.member_name) + " - " + str(self.age) + " - " + str(self.gender)
 
     def save(self, *args, **kwargs):
-        self.member_id = self.member_id.upper()
+        self.member_id = self.member_id.strip().upper()
+        self.member_name = self.member_name and self.member_name.strip()
         return super().save(*args, **kwargs)

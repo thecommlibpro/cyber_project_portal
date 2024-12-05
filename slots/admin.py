@@ -398,12 +398,12 @@ class SlotAdmin(admin.ModelAdmin):
         library = LibraryNames(request.POST.get('library'))
 
         slots = get_slot_results(library, start_day, end_day)
-        members = Member.objects.all()
+        members = Member.objects.filter(age__isnull=False)
 
         member_map = {
             member.member_id: {
-                'member_id': member.member_id.strip(),
-                'member_name': member.member_name.strip(),
+                'member_id': member.member_id,
+                'member_name': member.member_name,
                 'gender': member.gender,
                 'age': member.age,
                 'laptop_common_1': 0,
