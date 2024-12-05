@@ -395,12 +395,9 @@ class SlotAdmin(admin.ModelAdmin):
 
         start_day = request.POST["start_day"]
         end_day = request.POST["end_day"]
-
-        date_range = (parse(start_day), parse(end_day))
-
         library = LibraryNames(request.POST.get('library'))
 
-        slots = Slot.objects.filter(datetime__range=date_range, library=library)
+        slots = get_slot_results(library, start_day, end_day)
         members = Member.objects.all()
 
         member_map = {
@@ -427,12 +424,12 @@ class SlotAdmin(admin.ModelAdmin):
         }
 
         for slot in slots:
-            member_map[slot.laptop_common_1_id]['laptop_common_1'] += 1
-            member_map[slot.laptop_common_2_id]['laptop_common_2'] += 1
-            member_map[slot.laptop_non_male_1_id]['laptop_non_male_1'] += 1
-            member_map[slot.laptop_non_male_2_id]['laptop_non_male_2'] += 1
-            member_map[slot.laptop_education_id]['laptop_education'] += 1
-            member_map[slot.laptop_disability_id]['laptop_disability'] += 1
+            member_map[slot['laptop_common_1_id']]['laptop_common_1'] += 1
+            member_map[slot['laptop_common_2_id']]['laptop_common_2'] += 1
+            member_map[slot['laptop_non_male_1_id']]['laptop_non_male_1'] += 1
+            member_map[slot['laptop_non_male_2_id']]['laptop_non_male_2'] += 1
+            member_map[slot['laptop_education_id']]['laptop_education'] += 1
+            member_map[slot['laptop_disability_id']]['laptop_disability'] += 1
 
         del member_map[None]
 

@@ -81,12 +81,21 @@ def get_member_results():
     return member_results
 
 def get_slot_results(library, start_day, end_day):
-    cursor = connection.cursor()
-    query = f"SELECT * FROM slots_slot where library = '{library}' and datetime >= '{start_day} 00:00:00' and datetime <= '{end_day} 23:00:00'"
-    cursor.execute(query)
-    columns = [col[0] for col in cursor.description]
-    results = [
-        dict(zip(columns, row))
-        for row in cursor.fetchall()
-    ]
+    """
+    Return a list of dict objects of all the slots filtered by the library and date range.
+    """
+    slots = Slot.objects.filter(library=library, datetime__range=(start_day, end_day))
+    results = []
+    field_names = Slot._meta.fields
+
+    for slot in slots:
+        result = dict()
+        for field in field_names:
+            if 'laptop_' in field.name:
+                result[field.name + '_id'] = getattr(getattr(slot, field.name), 'member_id', None)
+            else:
+                result[field.name] = getattr(slot, field.name)
+
+        results.append(result)
+
     return results
