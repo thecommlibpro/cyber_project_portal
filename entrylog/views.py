@@ -43,13 +43,13 @@ def daily_log(request):
             previous_entry = EntryLog.objects.filter(member=member, library=library, entered_date=today).first()
 
             if previous_entry:
-                context['error'] = f"Member {member_id} already logged in today at {previous_entry.entered_time.strftime('%H:%M')}"
+                context['error'] = f"Member {member_id} ({member.member_name}) already logged in today at {previous_entry.entered_time.strftime('%H:%M')}"
             else:
                 # If it doesn't exist, create a new entry
                 try:
                     EntryLog.objects.create(member=member, library=library, entered_date=today)
 
-                    context['message'] = "Member logged in."
+                    context['message'] = f"Member {member_id} ({member.member_name}) logged in."
                     if member.first_login_at is None:
                         member.first_login_at = datetime.now()
                         member.save()
