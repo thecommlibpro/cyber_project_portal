@@ -89,4 +89,22 @@
             </button>
         </div>
     </form>
+
+    <script type="application/javascript" defer>
+        // Get the select element
+        const selectElement = document.getElementById('library');
+
+        // Restore the saved value when the page loads
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedValue = localStorage.getItem('selectedLibrary');
+            if (savedValue) {
+                selectElement.value = savedValue;
+            }
+        });
+
+        // Save the selected value when the selection changes
+        selectElement.addEventListener('change', () => {
+            localStorage.setItem('selectedLibrary', selectElement.value);
+        });
+    </script>
 {% endblock %}
