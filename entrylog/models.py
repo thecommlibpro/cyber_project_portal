@@ -1,3 +1,5 @@
+from functools import cached_property
+
 from django.db import models
 
 from members.models import Member
@@ -15,12 +17,12 @@ class EntryLog(models.Model):
     entered_time = models.TimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.member_id} - {self.entered_date} {self.entered_time.strftime('%H:%M')}"
+        return f"{self.member.member_id} ({self.member_name}) - {self.entered_date} {self.entered_time.strftime('%H:%M')} - {self.library_location}"
 
-    @property
+    @cached_property
     def library_location(self):
         return self.library.split('-')[1].strip()
 
-    @property
+    @cached_property
     def member_name(self):
         return self.member.member_name

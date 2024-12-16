@@ -1,6 +1,8 @@
 import logging
 
 from django.contrib import admin
+
+from entrylog.models import EntryLog
 from .models import Member
 import csv
 from django.contrib.admin.helpers import ActionForm, AdminForm
@@ -18,9 +20,25 @@ class DataImport(ActionForm):
     
     file = forms.FileField(required=False)
 
+
+class EntryLogInline(admin.TabularInline):
+    model = EntryLog
+    extra = 0
+    show_full_result_count = True
+    ordering = [
+        '-entered_date',
+        '-entered_time',
+    ]
+    exclude = [
+        'library',
+    ]
+
+
 class MemberAdmin(admin.ModelAdmin):
-    
     action_form = DataImport
+    inlines = [
+        EntryLogInline,
+    ]
 
     @admin.action(description="Import Members from file")
     def import_members(modeladmin, request, queryset):

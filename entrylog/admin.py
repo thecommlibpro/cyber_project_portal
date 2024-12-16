@@ -1,10 +1,12 @@
 from django.contrib import admin
 from rangefilter.filters import DateRangeFilterBuilder
 
+from .forms import LogAdminForm
 from .models import EntryLog
 
 
 class EntryLogAdmin(admin.ModelAdmin):
+    form = LogAdminForm
     list_display = (
         'library_location',
         'get_member_id',
