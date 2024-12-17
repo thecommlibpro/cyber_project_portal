@@ -27,13 +27,13 @@ class Command(BaseCommand):
 
         logging.info(f'Members with first login value: {Member.objects.exclude(first_login_at__isnull=True).count()}')
 
-        for member in Member.objects.exclude(first_login_at__isnull=True):
-            first_entry = member.member_logs.order_by('entered_date', 'entered_time').first()
+        for member in Member.objects.all():
+            first_entry = member.member_logs.order_by('entered_date').first()
 
             if first_entry:
                 timestamp = datetime.combine(first_entry.entered_date, first_entry.entered_time)
 
-                if member.first_login_at > timestamp:
+                if not member.first_login_at or member.first_login_at > timestamp:
                     try:
                         member.first_login_at = timestamp
                         member.save(update_fields=['first_login_at'])

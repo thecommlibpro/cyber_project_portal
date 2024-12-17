@@ -15,7 +15,7 @@ class Member(models.Model):
         max_length=30,
         null=False,
     )
-    member_name = models.TextField(null=True)
+    member_name = models.CharField(max_length=1024, null=True, blank=True)
 
     class Gender(models.TextChoices):
         male = "Male"
