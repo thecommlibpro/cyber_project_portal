@@ -36,6 +36,17 @@ class LibraryNames(models.TextChoices):
     # TCLP_03 = ("The Community Library Project - Sec 43", "The Community Library Project - Sec 43")
     TCLP_04 = ("The Community Library Project - South Ex", "The Community Library Project - South Ex")
 
+    @classmethod
+    def get_library(cls, code: str):
+        library_map = {
+            'MK': cls.TCLP_01,
+            'MA': cls.TCLP_02,
+            'MX': cls.TCLP_04
+        }
+
+        return library_map[code.upper()]
+
+
 class LaptopCategories(models.TextChoices):
     laptop_common_1 = ("Common Laptop - 1", "Common Laptop - 1")
     laptop_common_2 = ("Common Laptop - 2", "Common Laptop - 2")
