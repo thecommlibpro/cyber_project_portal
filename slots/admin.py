@@ -510,7 +510,7 @@ class SlotAdmin(admin.ModelAdmin):
 
     # This is for not having to select any existing slot in case of generating slots
     def changelist_view(self, request, extra_context=None):
-        if 'action' in request.POST and request.POST['action'] in ['generate_r1', 'generate_r2', 'generate_r3', 'generate_r4', 'generate_r5', 'generate_r6', 'generate_r7']:
+        if 'action' in request.POST and 'generate_r' in request.POST['action']:
             if not request.POST.getlist(ACTION_CHECKBOX_NAME):
                 post = request.POST.copy()
                 post.update({ACTION_CHECKBOX_NAME: str(Slot.objects.first().id)})
