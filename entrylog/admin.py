@@ -10,7 +10,7 @@ from rangefilter.filters import DateRangeFilterBuilder
 from slots.models import LibraryNames
 from .forms import LogAdminForm
 from .models import EntryLog
-from .reports import get_age_wise_unique_visitors
+from .reports import get_age_wise_unique_visitors, get_gender_wise_unique_visitors
 
 
 class EntryLogActionForm(ActionForm):
@@ -44,6 +44,7 @@ class EntryLogAdmin(admin.ModelAdmin):
     )
     actions = [
         'generate_l1',
+        'generate_l2',
     ]
 
     # This is for not having to select any existing slot in case of generating slots
@@ -68,7 +69,7 @@ class EntryLogAdmin(admin.ModelAdmin):
     get_member_id.short_description = 'Member ID'
     get_member_id.admin_order_field = 'member__member_id'
 
-    @admin.action(description="L1 - Generate age wise report of UNIQUE members")
+    @admin.action(description="L1 - Generate age wise report")
     def generate_l1(modeladmin, request, queryset):
         request_json = dict(request.POST)
         library = request_json["library"][0]
@@ -76,8 +77,28 @@ class EntryLogAdmin(admin.ModelAdmin):
         end_day = request_json["end_day"][0]
 
         results, fieldnames = get_age_wise_unique_visitors(library, start_day, end_day)
+        suffix = modeladmin._get_report_suffix(library, start_day, end_day)
 
-        return modeladmin._generate_report_csv('L1', results, fieldnames)
+        return modeladmin._generate_report_csv('L1' + suffix, results, fieldnames)
+
+    @admin.action(description="L2 - Generate gender wise report")
+    def generate_l2(modeladmin, request, queryset):
+        request_json = dict(request.POST)
+        library = request_json["library"][0]
+        start_day = request_json["start_day"][0]
+        end_day = request_json["end_day"][0]
+
+        results, fieldnames = get_gender_wise_unique_visitors(library, start_day, end_day)
+        suffix = modeladmin._get_report_suffix(library, start_day, end_day)
+
+        return modeladmin._generate_report_csv('L2' + suffix, results, fieldnames)
+
+    @staticmethod
+    def _get_report_suffix(library: str, start: str, end: str):
+        suffix = f" - {library.split('-')[1]}" if library else "- All locations"
+        suffix += " from " + (start or "(start)")
+        suffix += " to " + (end or "(now)")
+        return suffix
 
     @staticmethod
     def _generate_report_csv(report_name, results: list[dict], fieldnames=None):

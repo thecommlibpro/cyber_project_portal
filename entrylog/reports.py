@@ -2,6 +2,7 @@ from collections import defaultdict
 from datetime import datetime
 
 from dateutil.parser import parse as date_parse
+from django.db.models import Count, F
 
 from entrylog.models import EntryLog
 from members.models import Member
@@ -13,17 +14,15 @@ def get_age_wise_unique_visitors(library=None, start=None, end=None):
     """
     Returns a list of dicts, containing age -> count of members who have visited the library at least once.
     """
-    entry_logs = EntryLog.objects.all()
+    start = start or DEFAULT_START_DATE
+    end = end or datetime.today()
+    entry_logs = EntryLog.objects.filter(
+        entered_date__range=(start, end),
+    )
 
     if library:
         entry_logs = entry_logs.filter(library=library)
 
-    start = start or DEFAULT_START_DATE
-    end = end or datetime.today()
-
-    entry_logs = entry_logs.filter(
-        entered_date__range=(start, end),
-    )
     member_ids = entry_logs.values_list('member_id').distinct()
 
     age_map = defaultdict(int)
@@ -58,3 +57,30 @@ def get_age_wise_unique_visitors(library=None, start=None, end=None):
     combined = [{'Age/Age Group': k, 'Count': v} for k, v in (list(age_range_map.items()) + list(age_map_results))]
 
     return combined, ['Age/Age Group', 'Count']
+
+
+def get_gender_wise_unique_visitors(library=None, start=None, end=None):
+    """
+    Returns a list of dicts, containing gender -> count of members who have visited the library at least once.
+    """
+    start = start or DEFAULT_START_DATE
+    end = end or datetime.today()
+    entry_logs = EntryLog.objects.filter(
+        entered_date__range=(start, end),
+    )
+
+    if library:
+        entry_logs = entry_logs.filter(library=library)
+
+    members = Member.objects.filter(uid__in=entry_logs.values_list('member_id')).distinct()
+
+    values = members.values('gender').order_by('gender').annotate(
+        Count=Count('gender'),
+    ).annotate(Gender=F('gender')).values(
+        'Gender', 'Count',
+    )
+
+    return (
+        list(values) + [{'Gender': 'Total', 'Count': members.count()}],
+        ['Gender', 'Count'],
+    )
