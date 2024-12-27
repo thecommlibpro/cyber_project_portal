@@ -10,7 +10,7 @@ from rangefilter.filters import DateRangeFilterBuilder
 from slots.models import LibraryNames
 from .forms import LogAdminForm
 from .models import EntryLog
-from .reports import get_age_wise_unique_visitors, get_gender_wise_unique_visitors
+from .reports import get_age_wise_unique_visitors, get_gender_wise_unique_visitors, get_footfall
 
 
 class EntryLogActionForm(ActionForm):
@@ -28,6 +28,8 @@ class EntryLogAdmin(admin.ModelAdmin):
         'member_name',
         'entered_date',
         'entered_time',
+        'get_member_gender',
+        'get_member_age'
     )
     list_display_links = (
         'get_member_id',
@@ -37,6 +39,8 @@ class EntryLogAdmin(admin.ModelAdmin):
         'library',
         ('entered_date', DateRangeFilterBuilder('Log date')),
         'entered_date',
+        'member__gender',
+        'member__age',
     )
     search_fields = (
         'member__member_id',
@@ -45,7 +49,11 @@ class EntryLogAdmin(admin.ModelAdmin):
     actions = [
         'generate_l1',
         'generate_l2',
+        'generate_l3',
     ]
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('member')
 
     # This is for not having to select any existing slot in case of generating slots
     def changelist_view(self, request, extra_context=None):
@@ -68,6 +76,18 @@ class EntryLogAdmin(admin.ModelAdmin):
 
     get_member_id.short_description = 'Member ID'
     get_member_id.admin_order_field = 'member__member_id'
+
+    def get_member_gender(self, entry_log):
+        return entry_log.member.gender
+
+    get_member_gender.short_description = 'Gender'
+    get_member_gender.admin_order_field = 'member__gender'
+
+    def get_member_age(self, entry_log):
+        return entry_log.member.age
+
+    get_member_age.short_description = 'Age'
+    get_member_age.admin_order_field = 'member__age'
 
     @admin.action(description="L1 - Generate age wise report")
     def generate_l1(modeladmin, request, queryset):
@@ -92,6 +112,18 @@ class EntryLogAdmin(admin.ModelAdmin):
         suffix = modeladmin._get_report_suffix(library, start_day, end_day)
 
         return modeladmin._generate_report_csv('L2' + suffix, results, fieldnames)
+
+    @admin.action(description="L3 - Generate age + gender wise report of footfall")
+    def generate_l3(modeladmin, request, queryset):
+        request_json = dict(request.POST)
+        library = request_json["library"][0]
+        start_day = request_json["start_day"][0]
+        end_day = request_json["end_day"][0]
+
+        results, fieldnames = get_footfall(library, start_day, end_day)
+        suffix = modeladmin._get_report_suffix(library, start_day, end_day)
+
+        return modeladmin._generate_report_csv('L3' + suffix, results, fieldnames)
 
     @staticmethod
     def _get_report_suffix(library: str, start: str, end: str):

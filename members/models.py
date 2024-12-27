@@ -4,6 +4,14 @@ from django.db import models
 from django.db.models.functions import Upper
 
 
+class Gender(models.TextChoices):
+    male = "Male"
+    female = "Female"
+    gender_non_conforming = "Gender non-conforming"
+    non_binary = "Non-binary"
+    prefer_not_to_say = "Prefer not to say"
+    transgender = "Transgender"
+
 class Member(models.Model):
     uid = models.UUIDField(
         primary_key=True,
@@ -16,15 +24,6 @@ class Member(models.Model):
         null=False,
     )
     member_name = models.CharField(max_length=1024, null=True, blank=True)
-
-    class Gender(models.TextChoices):
-        male = "Male"
-        female = "Female"
-        gender_non_conforming = "Gender non-conforming"
-        non_binary = "Non-binary"
-        prefer_not_to_say = "Prefer not to say"
-        transgender = "Transgender"
-
     gender = models.CharField(max_length=30, choices=Gender.choices, default=Gender.female, null=True)
 
     age = models.IntegerField(null=True)

@@ -5,24 +5,14 @@ from dateutil.parser import parse as date_parse
 from django.db.models import Count, F
 
 from entrylog.models import EntryLog
-from members.models import Member
-
-DEFAULT_START_DATE = date_parse('2022-01-01')  # When daily logs started to be recorded
+from members.models import Member, Gender
 
 
 def get_age_wise_unique_visitors(library=None, start=None, end=None):
     """
     Returns a list of dicts, containing age -> count of members who have visited the library at least once.
     """
-    start = start or DEFAULT_START_DATE
-    end = end or datetime.today()
-    entry_logs = EntryLog.objects.filter(
-        entered_date__range=(start, end),
-    )
-
-    if library:
-        entry_logs = entry_logs.filter(library=library)
-
+    entry_logs = EntryLog.filtered(library, start, end)
     member_ids = entry_logs.values_list('member_id').distinct()
 
     age_map = defaultdict(int)
@@ -63,15 +53,7 @@ def get_gender_wise_unique_visitors(library=None, start=None, end=None):
     """
     Returns a list of dicts, containing gender -> count of members who have visited the library at least once.
     """
-    start = start or DEFAULT_START_DATE
-    end = end or datetime.today()
-    entry_logs = EntryLog.objects.filter(
-        entered_date__range=(start, end),
-    )
-
-    if library:
-        entry_logs = entry_logs.filter(library=library)
-
+    entry_logs = EntryLog.filtered(library, start, end)
     members = Member.objects.filter(uid__in=entry_logs.values_list('member_id')).distinct()
 
     values = members.values('gender').order_by('gender').annotate(
@@ -84,3 +66,61 @@ def get_gender_wise_unique_visitors(library=None, start=None, end=None):
         list(values) + [{'Gender': 'Total', 'Count': members.count()}],
         ['Gender', 'Count'],
     )
+
+
+def get_footfall(library=None, start=None, end=None):
+    """
+    Returns a list of dicts, combining counts for age + gender combo.
+    """
+    age_map = {
+        'CHILD': 0,
+        'HEAD_START': 0,
+        'LOWER': 0,
+        'UPPER': 0,
+        'ADULT': 0,
+        'UNKNOWN': 0,
+    }
+    gender_map = {key: dict(**age_map) for key, _ in Gender.choices}
+    gender_map['Unknown'] = dict(**age_map)
+    values = EntryLog.filtered(library, start, end).values_list(
+        'member__age',
+        'member__gender',
+    )
+
+    for age, gender in values:
+        if age is None:
+            age_group = 'UNKNOWN'
+        elif age < 4:
+            age_group = 'CHILD'
+        elif age < 6:
+            age_group = 'HEAD_START'
+        elif age < 12:
+            age_group = 'LOWER'
+        elif age < 18:
+            age_group = 'UPPER'
+        else:
+            age_group = 'ADULT'
+
+        gender_map[gender or 'Unknown'][age_group] += 1
+
+    results = []
+
+    for gender in gender_map:
+        for age_group in gender_map[gender]:
+            results.append(dict(
+                Gender=gender,
+                AgeGroup=age_group,
+                Count=gender_map[gender][age_group],
+            ))
+
+    results.append(dict(
+        Gender='All',
+        AgeGroup='All',
+        Count=values.count(),
+    ))
+
+    return (
+        results,
+        ['Gender', 'AgeGroup', 'Count'],
+    )
+

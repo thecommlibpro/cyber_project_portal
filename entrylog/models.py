@@ -1,5 +1,6 @@
+from datetime import datetime
 from functools import cached_property
-
+from dateutil.parser import parse as date_parse
 from django.db import models
 
 from members.models import Member
@@ -7,6 +8,7 @@ from slots.models import LibraryNames
 
 
 class EntryLog(models.Model):
+    DEFAULT_START_DATE = date_parse('2022-01-01')
     member = models.ForeignKey(
         Member,
         on_delete=models.CASCADE,
@@ -26,3 +28,16 @@ class EntryLog(models.Model):
     @cached_property
     def member_name(self):
         return self.member.member_name
+
+    @classmethod
+    def filtered(cls, library=None, start=None, end=None):
+        start = start or cls.DEFAULT_START_DATE
+        end = end or datetime.today()
+        entry_logs = cls.objects.filter(
+            entered_date__range=(start, end),
+        )
+
+        if library:
+            entry_logs = entry_logs.filter(library=library)
+
+        return entry_logs
