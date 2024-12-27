@@ -10,7 +10,7 @@ from rangefilter.filters import DateRangeFilterBuilder
 from slots.models import LibraryNames
 from .forms import LogAdminForm
 from .models import EntryLog
-from .reports import get_age_wise_unique_visitors, get_gender_wise_unique_visitors, get_footfall
+from .reports import get_age_wise_unique_visitors, get_gender_wise_unique_visitors, get_footfall, get_first_timers
 
 
 class EntryLogActionForm(ActionForm):
@@ -50,6 +50,7 @@ class EntryLogAdmin(admin.ModelAdmin):
         'generate_l1',
         'generate_l2',
         'generate_l3',
+        'generate_l4',
     ]
 
     def get_queryset(self, request):
@@ -124,6 +125,18 @@ class EntryLogAdmin(admin.ModelAdmin):
         suffix = modeladmin._get_report_suffix(library, start_day, end_day)
 
         return modeladmin._generate_report_csv('L3' + suffix, results, fieldnames)
+
+    @admin.action(description="L4 - Generate first timers report")
+    def generate_l4(modeladmin, request, queryset):
+        request_json = dict(request.POST)
+        library = request_json["library"][0]
+        start_day = request_json["start_day"][0]
+        end_day = request_json["end_day"][0]
+
+        results, fieldnames = get_first_timers(library, start_day, end_day)
+        suffix = modeladmin._get_report_suffix(library, start_day, end_day)
+
+        return modeladmin._generate_report_csv('L4' + suffix, results, fieldnames)
 
     @staticmethod
     def _get_report_suffix(library: str, start: str, end: str):

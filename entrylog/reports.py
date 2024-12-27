@@ -2,7 +2,7 @@ from collections import defaultdict
 from datetime import datetime
 
 from dateutil.parser import parse as date_parse
-from django.db.models import Count, F
+from django.db.models import Count, F, Min, Q
 
 from entrylog.models import EntryLog
 from members.models import Member, Gender
@@ -124,3 +124,45 @@ def get_footfall(library=None, start=None, end=None):
         ['Gender', 'AgeGroup', 'Count'],
     )
 
+
+def get_first_timers(library=None, start=None, end=None):
+    """
+    Return list of members who have come to the library for the first time.
+    """
+    start = start or EntryLog.DEFAULT_START_DATE
+    end = end or datetime.now()
+
+    library_filter = Q(member_logs__library=library) if library else None
+    members = Member.objects.annotate(
+        log_count=Count('member_logs'),
+    ).exclude(
+        log_count=0,
+    ).annotate(
+        first_login=Min('member_logs__entered_date', filter=library_filter),
+    ).filter(
+        first_login__range=(start, end),
+    )
+
+    results = []
+
+    for member in members:
+        results.append({
+            'Member ID': member.member_id,
+            'Name': member.member_name,
+            'Gender': member.gender,
+            'Age': member.age,
+            'First Login': member.first_login,
+            'Log Count': member.log_count,
+        })
+
+    return (
+        results,
+        [
+            'Member ID',
+            'Name',
+            'Gender',
+            'Age',
+            'First Login',
+            'Log Count',
+        ]
+    )
