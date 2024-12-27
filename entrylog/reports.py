@@ -166,3 +166,41 @@ def get_first_timers(library=None, start=None, end=None):
             'Log Count',
         ]
     )
+
+
+def get_most_frequent_users(library=None, start=None, end=None):
+    """
+    Return a list of dicts containing details of the most frequently visiting members.
+    """
+    filters = Q(
+        member_logs__entered_date__range=(start or EntryLog.DEFAULT_START_DATE, end or datetime.now()),
+    )
+
+    if library:
+        filters = Q(member_logs__library=library)
+
+    members = Member.objects.annotate(
+        entry_count=Count('member_logs', filter=filters)
+    ).exclude(entry_count=0).order_by('-entry_count')
+
+    results = []
+
+    for member in members:
+        results.append({
+            'Member ID': member.member_id,
+            'Name': member.member_name,
+            'Age': member.age,
+            'Gender': member.gender,
+            'Entry Count': member.entry_count,
+        })
+
+    return (
+        results,
+        [
+            'Member ID',
+            'Name',
+            'Age',
+            'Gender',
+            'Entry Count',
+        ]
+    )
