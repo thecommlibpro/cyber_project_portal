@@ -1,7 +1,8 @@
 from collections import defaultdict
 from typing import Any
 
-from django.db.models import Count, Q, Sum, Value, F
+from dateutil.rrule import rrule, MONTHLY
+from django.db.models import Count, Q, Sum, Value, F, Prefetch
 from django.http import HttpResponse
 from django.contrib import admin
 from .models import Slot
@@ -93,6 +94,7 @@ class SlotAdmin(admin.ModelAdmin):
     R7 - Generate list of every member who took the slot
     R8 - Generate slot count for all members (13yo - 16yo)
     R9 - Generate gender-wise education slots report
+    R10 - Generate monthly usage report
     '''
     @admin.action(description="R1 - Generate Gender wise report of UNIQUE members")
     def generate_r1(modeladmin, request, queryset):
@@ -508,6 +510,67 @@ class SlotAdmin(admin.ModelAdmin):
 
         return response
 
+    @admin.action(description="R10 - Generate monthly usage report")
+    def generate_r10(modeladmin, request, queryset):
+        """Generate monthly usage report"""
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=R10.csv'
+
+        library = request.POST.get('library')
+        start_day, end_day = request.POST['start_day'], request.POST['end_day']
+
+        months_list = [(dt.year, dt.month) for dt in rrule(MONTHLY, dtstart=parse(start_day), until=parse(end_day))]
+        slots = Slot.objects.filter(datetime__range=(start_day, end_day))
+
+        if library:
+            slots = slots.filter(library=library)
+
+        laptops = [f.name + '_id' for f in filter(lambda f: 'laptop_' in f.name, Slot._meta.fields)]
+
+        members = Member.objects.all()
+        member_map = defaultdict(lambda: defaultdict(None))
+
+        # Prepare a mapping for slots with members
+        slot_member_map = defaultdict(list)
+        for slot in slots:
+            for field in laptops:
+                member_id = getattr(slot, field)
+                if member_id:
+                    slot_member_map[member_id].append(slot)
+
+        for member in members:
+            if member.pk not in slot_member_map:
+                continue
+
+            member_slots = slot_member_map[member.pk]
+            total = 0
+
+            for year, month in months_list:
+                month_count = sum(
+                    1 if slot.datetime.year == year and slot.datetime.month == month else 0
+                    for slot in member_slots
+                )
+                member_map[member.member_id][f'{year}-{month}'] = month_count
+                total += month_count
+
+            member_map[member.member_id].update({
+                'Member ID': member.member_id,
+                'Name': member.member_name,
+                'Age': member.age,
+                'Gender': member.gender,
+                'Total Slots': total,
+            })
+
+        fieldnames = [
+            'Member ID', 'Name', 'Age', 'Gender', 'Total Slots',
+        ] + [f'{year}-{month}' for year, month in months_list]
+
+        writer = csv.DictWriter(response, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(member_map.values())
+
+        return response
+
     # This is for not having to select any existing slot in case of generating slots
     def changelist_view(self, request, extra_context=None):
         if 'action' in request.POST and 'generate_r' in request.POST['action']:
@@ -527,6 +590,7 @@ class SlotAdmin(admin.ModelAdmin):
         'generate_r7',
         'generate_r8',
         'generate_r9',
+        'generate_r10',
     )
 
 admin.site.register(Slot, SlotAdmin)
