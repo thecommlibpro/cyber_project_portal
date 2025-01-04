@@ -1,3 +1,4 @@
+from members.models import Gender
 from slots.models import LibraryNames, Slot, Member, LaptopCategories
 from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
@@ -44,7 +45,7 @@ def check_if_male_member_enrolled_consecutive(request):
     slot_date = parse(request.POST["datetime_0"]).date()
     prev_date = slot_date - relativedelta(days=1)
     day = None
-    if member_gender == Member.Gender.male:
+    if member_gender == Gender.male:
         for obj in Slot.objects.filter(member=member_id):
             if prev_date == obj.datetime.date():
                 day = "yesterday"

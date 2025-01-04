@@ -4,6 +4,8 @@ from django.db.models.base import Model
 from django.forms.utils import ErrorList
 from django_select2 import forms as s2forms
 from django import forms
+
+from members.models import Gender
 from . import models
 from slots.models import Slot, Member, LibraryNames
 from dateutil.parser import parse
@@ -90,7 +92,7 @@ class SlotForm(forms.ModelForm):
             if cleaned_data[changed_field]:
                 member_gender = cleaned_data[changed_field].gender
                 #4, #7
-                if changed_field != 'laptop_education' or (weekday !=6 and member_gender != Member.Gender.male):
+                if changed_field != 'laptop_education' or (weekday !=6 and member_gender != Gender.male):
                     member_id = cleaned_data[changed_field].member_id
                     if self.check_if_member_enrolled_prev_day(member_id, library, prev_date):
                         raise forms.ValidationError(f"Member {member_id} took a slot yesterday")
@@ -100,7 +102,7 @@ class SlotForm(forms.ModelForm):
             if cleaned_data[changed_field]:
                 member_gender = cleaned_data[changed_field].gender
                 member_id = cleaned_data[changed_field].member_id
-                if member_gender == Member.Gender.male:
+                if member_gender == Gender.male:
                     if weekday ==6:
                         non_male_laptop_list = laptop_list[:]
                         non_male_laptop_list.remove("laptop_disability")
