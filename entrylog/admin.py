@@ -97,7 +97,7 @@ class EntryLogAdmin(admin.ModelAdmin):
     get_member_age.short_description = 'Age'
     get_member_age.admin_order_field = 'member__age'
 
-    @admin.action(description="L1 - Generate age wise report")
+    @admin.action(description="L1 - Generate age wise report of unique members")
     def generate_l1(modeladmin, request, queryset):
         request_json = dict(request.POST)
         library = request_json["library"][0]
@@ -109,7 +109,7 @@ class EntryLogAdmin(admin.ModelAdmin):
 
         return modeladmin._generate_report_csv('L1' + suffix, results, fieldnames)
 
-    @admin.action(description="L2 - Generate gender wise report")
+    @admin.action(description="L2 - Generate gender wise report of unique members")
     def generate_l2(modeladmin, request, queryset):
         request_json = dict(request.POST)
         library = request_json["library"][0]
@@ -159,7 +159,7 @@ class EntryLogAdmin(admin.ModelAdmin):
 
     @staticmethod
     def _get_report_suffix(library: str, start: str, end: str):
-        suffix = f" - {library.split('-')[1]}" if library else "- All locations"
+        suffix = f" - {library.split('-')[1]}" if library else " - All locations"
         suffix += " from " + (start or "(start)")
         suffix += " to " + (end or "(now)")
         return suffix
