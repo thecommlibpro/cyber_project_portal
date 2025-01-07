@@ -15,7 +15,7 @@ from .reports import (
     get_gender_wise_unique_visitors,
     get_footfall,
     get_first_timers,
-    get_most_frequent_users,
+    get_most_frequent_users, get_members_who_did_not_visit,
 )
 
 
@@ -58,6 +58,7 @@ class EntryLogAdmin(admin.ModelAdmin):
         'generate_l3',
         'generate_l4',
         'generate_l5',
+        'generate_l6',
     ]
 
     def get_queryset(self, request):
@@ -156,6 +157,18 @@ class EntryLogAdmin(admin.ModelAdmin):
         suffix = modeladmin._get_report_suffix(library, start_day, end_day)
 
         return modeladmin._generate_report_csv('L5' + suffix, results, fieldnames)
+
+    @admin.action(description="L6 - Generate non-visiting members report")
+    def generate_l6(modeladmin, request, queryset):
+        request_json = dict(request.POST)
+        library = request_json["library"][0]
+        start_day = request_json["start_day"][0]
+        end_day = request_json["end_day"][0]
+
+        results, fieldnames = get_members_who_did_not_visit(library, start_day, end_day)
+        suffix = modeladmin._get_report_suffix(library, start_day, end_day)
+
+        return modeladmin._generate_report_csv('L6' + suffix, results, fieldnames)
 
     @staticmethod
     def _get_report_suffix(library: str, start: str, end: str):

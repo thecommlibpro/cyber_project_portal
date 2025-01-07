@@ -1,8 +1,7 @@
 from collections import defaultdict
 from datetime import datetime
 
-from dateutil.parser import parse as date_parse
-from django.db.models import Count, F, Min, Q
+from django.db.models import Count, F, Min, Max, Q
 
 from entrylog.models import EntryLog
 from members.models import Member, Gender
@@ -203,4 +202,39 @@ def get_most_frequent_users(library=None, start=None, end=None):
             'Gender',
             'Entry Count',
         ]
+    )
+
+
+def get_members_who_did_not_visit(library=None, start=None, end=None):
+    """
+    Return a list of members who have not visited the library.
+    """
+    start = start or EntryLog.DEFAULT_START_DATE
+    end = end or datetime.now()
+    library_filter = Q(member_logs__library=library) if library else Q()
+
+    members = Member.objects.exclude(Q(member_logs__entered_date__range=(start, end)) & library_filter).annotate(
+        last_visit=Max('member_logs__entered_date'),
+    )
+
+    results = []
+
+    for member in members:
+        results.append({
+            'Member ID': member.member_id,
+            'Name': member.member_name,
+            'Age': member.age,
+            'Gender': member.gender,
+            'Last Visit': member.last_visit,
+        })
+
+    return (
+        results,
+        [
+            'Member ID',
+            'Name',
+            'Age',
+            'Gender',
+            'Last Visit',
+        ],
     )
