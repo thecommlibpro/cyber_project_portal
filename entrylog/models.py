@@ -41,3 +41,7 @@ class EntryLog(models.Model):
             entry_logs = entry_logs.filter(library=library)
 
         return entry_logs
+
+    @cached_property
+    def timestamp(self):
+        return datetime.combine(self.entered_date, self.entered_time)

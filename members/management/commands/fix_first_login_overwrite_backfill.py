@@ -33,12 +33,13 @@ class Command(BaseCommand):
             if first_entry:
                 timestamp = datetime.combine(first_entry.entered_date, first_entry.entered_time)
 
-                if not member.first_login_at or member.first_login_at > timestamp:
+                if not member.first_login_at or member.first_login_at.date() > first_entry.entered_date:
                     try:
+                        logging.info(f'Updating first login for member {member.member_id} from {member.first_login_at} to {timestamp}')
+
                         member.first_login_at = timestamp
                         member.save(update_fields=['first_login_at'])
                         count += 1
-                        logging.info(f'Updating first login for member {member.member_id} from {member.first_login_at} to {timestamp}')
                     except Exception as e:
                         logging.error(f'Error updating member: {e}')
                         error_count += 1

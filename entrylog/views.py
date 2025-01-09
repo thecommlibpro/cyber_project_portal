@@ -47,11 +47,11 @@ def daily_log(request):
             else:
                 # If it doesn't exist, create a new entry
                 try:
-                    EntryLog.objects.create(member=member, library=library, entered_date=today)
+                    entry = EntryLog.objects.create(member=member, library=library, entered_date=today)
 
                     context['message'] = f"Member {member_id} ({member.member_name}) logged in."
                     if member.first_login_at is None:
-                        member.first_login_at = datetime.now()
+                        member.first_login_at = entry.timestamp
                         member.save()
 
                         context['show_sticker_message'] = True
