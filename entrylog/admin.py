@@ -98,7 +98,7 @@ class EntryLogAdmin(admin.ModelAdmin):
     get_member_age.short_description = 'Age'
     get_member_age.admin_order_field = 'member__age'
 
-    @admin.action(description="L1 - Generate age wise report of unique members")
+    @admin.action(description="L1 - Generate age wise UFF report")
     def generate_l1(modeladmin, request, queryset):
         request_json = dict(request.POST)
         library = request_json["library"][0]
@@ -110,7 +110,7 @@ class EntryLogAdmin(admin.ModelAdmin):
 
         return modeladmin._generate_report_csv('L1' + suffix, results, fieldnames)
 
-    @admin.action(description="L2 - Generate gender wise report of unique members")
+    @admin.action(description="L2 - Generate gender wise UFF report")
     def generate_l2(modeladmin, request, queryset):
         request_json = dict(request.POST)
         library = request_json["library"][0]
@@ -122,7 +122,7 @@ class EntryLogAdmin(admin.ModelAdmin):
 
         return modeladmin._generate_report_csv('L2' + suffix, results, fieldnames)
 
-    @admin.action(description="L3 - Generate age + gender wise report of footfall")
+    @admin.action(description="L3 - Generate age + gender wise report of member footfall")
     def generate_l3(modeladmin, request, queryset):
         request_json = dict(request.POST)
         library = request_json["library"][0]
