@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'rangefilter',
     'django_select2',
+    'rest_framework',
     'entrylog.apps.EntrylogConfig',
 ]
 
@@ -85,6 +86,7 @@ LOGGING = {
 
 
 ROOT_URLCONF = 'portal.urls'
+APPEND_SLASH = True
 
 TEMPLATES = [
     {
@@ -136,6 +138,17 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAdminUser',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/

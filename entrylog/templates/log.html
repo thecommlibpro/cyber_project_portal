@@ -25,6 +25,10 @@
             display: none;
         }
 
+        .member_id_valid_message {
+            display: none;
+        }
+
     </style>
     <h1 class="text-3xl font-bold mb-6">Daily Log</h1>
 
@@ -76,11 +80,14 @@
         </div>
 
         <div class="mb-4">
-            <label for="member_id" class="block text-gray-700 text-lg font-bold mb-2">Member ID:</label>
-            <input type="text" id="member_id" name="member_id" required pattern="[A-Za-z0-9-]+"
+            <label for="member_id" class="block text-gray-700 text-lg font-bold mb-2">Member ID:
+                <span class="member_id_valid_message text-green-500" id="member_id_valid_message"></span>
+                <span class="member_id_valid_message text-red-500" id="member_id_invalid_message">Member ID not found</span>
+            </label>
+            <input type="text" id="member_id" name="member_id" required
                    class="text-2xl shadow appearance-none border rounded w-full p-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                    placeholder="Enter your Member ID"
-                   oninput="this.value = this.value.toUpperCase()">
+            />
         </div>
 
         <div class="flex items-center justify-between mt-12">
@@ -105,6 +112,45 @@
         // Save the selected value when the selection changes
         selectElement.addEventListener('change', () => {
             localStorage.setItem('selectedLibrary', selectElement.value);
+        });
+    </script>
+
+    <script type="application/javascript" defer>
+        document.getElementById('member_id').addEventListener('input', (event) => {
+            event.target.value = event.target.value?.toUpperCase();
+        });
+    </script>
+
+    <!-- Script to show a text under the member ID by fetching the API results when value of the member_id input changes -->
+    <script type="application/javascript" defer>
+        const memberInput = document.getElementById('member_id');
+        const library = document.getElementById('library');
+        const url = "{% url 'members-list' %}";
+        const validMessageSpan = document.getElementById('member_id_valid_message');
+        const invalidMessageSpan = document.getElementById('member_id_invalid_message');
+
+        memberInput.addEventListener('input', () => {
+            if (!memberInput.value || memberInput.value.length < 4) {
+                validMessageSpan.style.display = 'none';
+                invalidMessageSpan.style.display = 'none';
+                return;
+            }
+            fetch(`${url}${memberInput.value}/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.member_name) {
+                        validMessageSpan.innerText = `${data.member_name} - ${data.age || ''}, ${data.gender}`;
+
+                        if (data.last_login) {
+                            validMessageSpan.innerText += `, Last login: ${data.last_login}`;
+                        }
+                        validMessageSpan.style.display = 'inline-block';
+                        invalidMessageSpan.style.display = 'none';
+                    } else {
+                        validMessageSpan.style.display = 'none';
+                        invalidMessageSpan.style.display = 'inline-block';
+                    }
+                });
         });
     </script>
 {% endblock %}

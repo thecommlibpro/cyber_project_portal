@@ -30,8 +30,10 @@ from entrylog.views import daily_log, mark_sticker
 
 urlpatterns = [
     re_path('$', lambda request: redirect('admin/', permanent=False), name='index'),
+    path('api-auth/', include('rest_framework.urls')),
     path('admin/', admin.site.urls),
     path("slots/", include("slots.urls")),
+    path("members/", include("members.urls")),
     re_path("library/log", daily_log, name="daily_log"),
     path("library/mark_sticker", mark_sticker, name="mark_sticker"),
     re_path(
