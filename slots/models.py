@@ -46,6 +46,16 @@ class LibraryNames(models.TextChoices):
 
         return library_map[code.upper()]
 
+    @classmethod
+    def get_library_code(cls, library: 'LibraryNames'):
+        library_map = {
+            cls.TCLP_01: 'MK',
+            cls.TCLP_02: 'MA',
+            cls.TCLP_04: 'MX'
+        }
+
+        return library_map[library]
+
 
 class LaptopCategories(models.TextChoices):
     laptop_common_1 = ("Common Laptop - 1", "Common Laptop - 1")

@@ -5,6 +5,7 @@ from django.db.models import Count, F, Min, Max, Q
 
 from entrylog.models import EntryLog
 from members.models import Member, Gender
+from slots.models import LibraryNames
 
 
 def get_age_wise_unique_visitors(library=None, start=None, end=None):
@@ -212,8 +213,11 @@ def get_members_who_did_not_visit(library=None, start=None, end=None):
     start = start or EntryLog.DEFAULT_START_DATE
     end = end or datetime.now()
     library_filter = Q(member_logs__library=library) if library else Q()
+    membership_filter = Q(member_id__istartswith=LibraryNames.get_library_code(library)) if library else Q()
 
-    members = Member.objects.exclude(Q(member_logs__entered_date__range=(start, end)) & library_filter).annotate(
+    members = Member.objects.filter(membership_filter).exclude(
+        Q(member_logs__entered_date__range=(start, end)) & library_filter,
+    ).annotate(
         last_visit=Max('member_logs__entered_date'),
     )
 
