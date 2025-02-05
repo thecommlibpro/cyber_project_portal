@@ -85,7 +85,7 @@ class SlotForm(forms.ModelForm):
                     member_id = cleaned_data[changed_field].member_id
                     if member_id in member_list:
                         raise forms.ValidationError(f"Member {member_id} has already taken a slot today")
-        
+
         #3
         prev_date = str(parse(date).date() - relativedelta(days=1))
         for changed_field in changed_data:
@@ -96,7 +96,7 @@ class SlotForm(forms.ModelForm):
                     member_id = cleaned_data[changed_field].member_id
                     if self.check_if_member_enrolled_prev_day(member_id, library, prev_date):
                         raise forms.ValidationError(f"Member {member_id} took a slot yesterday")
-        
+
         #5, #6
         for changed_field in changed_data:
             if cleaned_data[changed_field]:
@@ -144,7 +144,7 @@ class SlotForm(forms.ModelForm):
         filtered_query_set = Slot.objects.filter(**kwargs)
         member_id_list = [getattr(z, laptop).member_id for z in filtered_query_set]
         return member_id_list
-    
+
     # Except Education slot
     def check_if_member_enrolled_prev_day(self, member_id, library, date):
         laptop_list = list(filter(lambda x: x.startswith("laptop"), [x.name for x in Slot._meta.get_fields()]))
@@ -157,7 +157,8 @@ class SlotForm(forms.ModelForm):
                     "datetime__startswith": date,
                     laptop: member_uid,
                 }
-                filtered_query_set = Slot.objects.filter(**kwargs)
-                if len(filtered_query_set) != 0:
+
+                if Slot.objects.filter(**kwargs).exists():
                     return True
-            return False
+
+        return False
