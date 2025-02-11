@@ -40,6 +40,21 @@ class SlotAdmin(admin.ModelAdmin):
         'wrapped_field_laptop_adult_common_1',
         'wrapped_field_laptop_adult_non_male',
     )
+    readonly_fields = (
+        'library',
+        'datetime',
+    )
+    fieldsets = (
+        (None, {
+            'fields': (
+                'library',
+                'datetime',
+            ),
+        }),
+        ('Laptops', {
+            'fields': list(filter(lambda x: x.startswith("laptop"), [x.name for x in Slot._meta.get_fields()])),
+        }),
+    )
 
     wrapped_field_laptop_common_1 = easy.SimpleAdminField(lambda x: linebreaksbr(x.laptop_common_1) if x.laptop_common_1 else "", 'Laptop for All - 1', 'Laptop for All - 1')
     wrapped_field_laptop_common_2 = easy.SimpleAdminField(lambda x: linebreaksbr(x.laptop_common_2) if x.laptop_common_2 else "", "Laptop for All - 2", "Laptop for All - 2")
@@ -49,6 +64,9 @@ class SlotAdmin(admin.ModelAdmin):
     wrapped_field_laptop_disability = easy.SimpleAdminField(lambda x: linebreaksbr(x.laptop_disability) if x.laptop_disability else "", "Laptop for P w Disabilities", "Laptop for P w Disabilities")
     wrapped_field_laptop_adult_common_1 = easy.SimpleAdminField(lambda x: linebreaksbr(x.laptop_adult_common_1) if x.laptop_adult_common_1 else "", "Laptop for adults - Common", "Laptop for adults - Common")
     wrapped_field_laptop_adult_non_male = easy.SimpleAdminField(lambda x: linebreaksbr(x.laptop_adult_common_1) if x.laptop_adult_common_1 else "", "Laptop for adults - T, NB, and Women", "Laptop for adults - T, NB, and Women")
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
     @admin.display(description='Slot time')
     def get_time(self, obj):
