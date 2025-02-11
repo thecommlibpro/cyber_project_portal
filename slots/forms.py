@@ -66,6 +66,7 @@ class SlotForm(forms.ModelForm):
         library = cleaned_data["library"]
         date = str(cleaned_data["datetime"].date())
         weekday = parse(date).isoweekday()
+        changed_data = {x: cleaned_data[x] for x in changed_data if x in laptop_list}
         ''' 6 is Saturday '''
 
         ## 1
