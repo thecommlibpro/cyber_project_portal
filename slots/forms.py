@@ -63,8 +63,8 @@ class SlotForm(forms.ModelForm):
         cleaned_data = super().clean()
         changed_data = self.changed_data
         laptop_list = list(filter(lambda x: x.startswith("laptop"), [x.name for x in Slot._meta.get_fields()]))
-        library = cleaned_data["library"]
-        date = str(cleaned_data["datetime"].date())
+        library = self.instance.library
+        date = str(self.instance.datetime.date())
         weekday = parse(date).isoweekday()
         changed_data = {x: cleaned_data[x] for x in changed_data if x in laptop_list}
         ''' 6 is Saturday '''
@@ -118,7 +118,7 @@ class SlotForm(forms.ModelForm):
                 member_id = cleaned_data[changed_field].member_id
 
                 if changed_field not in ["laptop_adult_common_1", "laptop_adult_non_male"]:
-                    check_time_slot_for_age_group(member_id, cleaned_data["datetime"], library)
+                    check_time_slot_for_age_group(member_id, self.instance.datetime, library)
 
         #10
         for changed_field in changed_data:
