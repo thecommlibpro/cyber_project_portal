@@ -20,7 +20,7 @@ from .reports import (
 
 
 class EntryLogActionForm(ActionForm):
-    library = forms.ChoiceField(choices=[('', '---')] + LibraryNames.choices, required=False)
+    library = forms.ChoiceField(choices=[('', 'All')] + LibraryNames.choices, required=False)
     start_day = forms.DateField(widget=AdminDateWidget, required=False)
     end_day = forms.DateField(widget=AdminDateWidget, required=False)
 

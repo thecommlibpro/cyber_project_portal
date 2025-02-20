@@ -85,7 +85,11 @@ def get_slot_results(library, start_day, end_day):
     """
     Return a list of dict objects of all the slots filtered by the library and date range.
     """
-    slots = Slot.objects.filter(library=library, datetime__range=(start_day, end_day))
+    slots = Slot.objects.filter(datetime__range=(start_day, end_day))
+
+    if library:
+        slots = slots.filter(library=library)
+
     results = []
     field_names = Slot._meta.fields
 

@@ -22,9 +22,9 @@ from .forms import SlotForm
 from django.db import connection
 
 class GenerateSlotForm(ActionForm):
-    library = forms.ChoiceField(choices=LibraryNames.choices, required=False)
-    start_day = forms.DateField(widget=AdminDateWidget, required=False)
-    end_day = forms.DateField(widget=AdminDateWidget, required=False)
+    library = forms.ChoiceField(choices=[('', 'All')] + LibraryNames.choices, required=False)
+    start_day = forms.DateField(widget=AdminDateWidget, required=True)
+    end_day = forms.DateField(widget=AdminDateWidget, required=True)
 
 class SlotAdmin(admin.ModelAdmin):
     form = SlotForm
@@ -415,7 +415,7 @@ class SlotAdmin(admin.ModelAdmin):
 
         start_day = request.POST["start_day"]
         end_day = request.POST["end_day"]
-        library = LibraryNames(request.POST.get('library'))
+        library = LibraryNames(request.POST.get('library')) if request.POST.get('library') else None
 
         slots = get_slot_results(library, start_day, end_day)
         members = Member.objects.filter(age__isnull=False)
@@ -501,7 +501,7 @@ class SlotAdmin(admin.ModelAdmin):
     def generate_r9(modeladmin, request, queryset):
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename=R9.csv'
-        library = LibraryNames(request.POST.get('library'))
+        library_filter = Q(laptop_education__library=LibraryNames(request.POST.get('library'))) if request.POST.get('library') else Q()
 
         start_day = request.POST["start_day"]
         end_day = request.POST["end_day"]
@@ -511,7 +511,7 @@ class SlotAdmin(admin.ModelAdmin):
         member_laptop_counts = Member.objects.annotate(
             count=Count(
                 'laptop_education',
-                filter=Q(laptop_education__library=library, laptop_education__datetime__range=date_range),
+                filter=Q(laptop_education__datetime__range=date_range) & library_filter,
             )
         )
         writer = csv.writer(response)
