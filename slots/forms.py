@@ -49,7 +49,7 @@ class SlotForm(forms.ModelForm):
 
     On Saturdays:
     6. 5 laptops (education, for all, reserved for girls) are only for girls, transgender, and non-binary members (no male member can take this slot, even when it is empty)  
-    7. Alternative days rules not applicable for Girls, trans and NB people on Saturdays. 
+    7. [Removed] Alternative days rules not applicable for Girls, trans and NB people on Saturdays. 
 
     Age related rules:
     8. Members below 16 years of age can only take slots from 12:00 pm to 5:30 pm
@@ -92,8 +92,8 @@ class SlotForm(forms.ModelForm):
         for changed_field in changed_data:
             if cleaned_data[changed_field]:
                 member_gender = cleaned_data[changed_field].gender
-                #4, #7
-                if changed_field != 'laptop_education' or (weekday !=6 and member_gender != Gender.male):
+                #4
+                if changed_field != 'laptop_education' or weekday != 6:
                     member_id = cleaned_data[changed_field].member_id
                     if self.check_if_member_enrolled_prev_day(member_id, library, prev_date):
                         raise forms.ValidationError(f"Member {member_id} took a slot yesterday")
