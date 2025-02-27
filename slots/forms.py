@@ -44,7 +44,7 @@ class SlotForm(forms.ModelForm):
 
     Rules for Sunday to Friday:
     3. All members can take slots only on alternative days, except Saturday
-    4. [Removed] Education slots can be taken daily.
+    4. Education slots can be taken daily.
     5. 2 laptops are reserved for girls, transgender, and non-binary members (no male member can take this slot, even when it is empty)
 
     On Saturdays:
@@ -91,8 +91,9 @@ class SlotForm(forms.ModelForm):
         prev_date = str(parse(date).date() - relativedelta(days=1))
         for changed_field in changed_data:
             if cleaned_data[changed_field]:
+                member_gender = cleaned_data[changed_field].gender
                 #4
-                if weekday != 6:
+                if changed_field != 'laptop_education' or weekday != 6:
                     member_id = cleaned_data[changed_field].member_id
                     if self.check_if_member_enrolled_prev_day(member_id, library, prev_date):
                         raise forms.ValidationError(f"Member {member_id} took a slot yesterday")
@@ -150,13 +151,15 @@ class SlotForm(forms.ModelForm):
         laptop_list = list(filter(lambda x: x.startswith("laptop"), [x.name for x in Slot._meta.get_fields()]))
         member_uid = Member.objects.filter(member_id=member_id).first().uid
         for laptop in laptop_list:
-            kwargs = {
-                "library": library,
-                "datetime__startswith": date,
-                laptop: member_uid,
-            }
+            #4
+            if laptop != "laptop_education":
+                kwargs = {
+                    "library": library,
+                    "datetime__startswith": date,
+                    laptop: member_uid,
+                }
 
-            if Slot.objects.filter(**kwargs).exists():
-                return True
+                if Slot.objects.filter(**kwargs).exists():
+                    return True
 
         return False
