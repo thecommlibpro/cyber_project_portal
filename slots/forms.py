@@ -93,7 +93,7 @@ class SlotForm(forms.ModelForm):
             if cleaned_data[changed_field]:
                 member_gender = cleaned_data[changed_field].gender
                 #4
-                if changed_field != 'laptop_education' or weekday != 6:
+                if changed_field != 'laptop_education':
                     member_id = cleaned_data[changed_field].member_id
                     if self.check_if_member_enrolled_prev_day(member_id, library, prev_date):
                         raise forms.ValidationError(f"Member {member_id} took a slot yesterday")
