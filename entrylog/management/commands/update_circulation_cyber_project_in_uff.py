@@ -125,11 +125,14 @@ class Command(BaseCommand):
                             logging.warning(f"Skipping entry - error getting library for code '{library_code}': {e}")
                             continue
 
-                        EntryLog.objects.create(
+                        entry = EntryLog.objects.create(
                             member=member,
                             library=library,
-                            entered_date=checkout_date
+                            entered_date=checkout_date  # This will be overridden by auto_now_add
                         )
+                        # Update the date after creation
+                        entry.entered_date = checkout_date
+                        entry.save(update_fields=['entered_date'])
 
                         # Update counter based on condition
                         if not first_entry:
@@ -199,11 +202,14 @@ class Command(BaseCommand):
                             logging.warning(f"Skipping entry - error getting library for code '{library_code}': {e}")
                             continue
 
-                        EntryLog.objects.create(
+                        entry = EntryLog.objects.create(
                             member=member,
                             library=library,
-                            entered_date=first_slot.datetime.date()
+                            entered_date=first_slot.datetime.date()  # This will be overridden by auto_now_add
                         )
+                        # Update the date after creation
+                        entry.entered_date = first_slot.datetime.date()
+                        entry.save(update_fields=['entered_date'])
 
                         # Update counter based on condition
                         if not first_entry:

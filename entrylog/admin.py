@@ -60,6 +60,10 @@ class EntryLogAdmin(admin.ModelAdmin):
         'generate_l5',
         'generate_l6',
     ]
+    ordering = [
+        '-entered_date',
+        '-entered_time',
+    ]
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('member')
