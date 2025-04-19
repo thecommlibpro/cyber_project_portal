@@ -177,7 +177,7 @@ def get_most_frequent_users(library=None, start=None, end=None):
     )
 
     if library:
-        filters = Q(member_logs__library=library)
+        filters = filters & Q(member_logs__library=library)
 
     members = Member.objects.annotate(
         entry_count=Count('member_logs', filter=filters)
