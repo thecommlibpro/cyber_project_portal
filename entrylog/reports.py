@@ -10,7 +10,7 @@ from slots.models import LibraryNames
 
 def get_age_wise_unique_visitors(library=None, start=None, end=None):
     """
-    Returns a list of dicts, containing age -> count of members who have visited the library at least once.
+    Returns data about age group -> count of members who have visited the library at least once in the time period.
     """
     entry_logs = EntryLog.filtered(library, start, end)
     member_ids = entry_logs.values_list('member_id').distinct()
@@ -51,7 +51,7 @@ def get_age_wise_unique_visitors(library=None, start=None, end=None):
 
 def get_gender_wise_unique_visitors(library=None, start=None, end=None):
     """
-    Returns a list of dicts, containing gender -> count of members who have visited the library at least once.
+    Returns data about gender -> count of members who have visited the library at least once in the time period.
     """
     entry_logs = EntryLog.filtered(library, start, end)
     members = Member.objects.filter(uid__in=entry_logs.values_list('member_id')).distinct()
@@ -70,7 +70,13 @@ def get_gender_wise_unique_visitors(library=None, start=None, end=None):
 
 def get_footfall(library=None, start=None, end=None):
     """
-    Returns a list of dicts, combining counts for age + gender combo.
+    Get footfall data. It counts how many members have visited the library in a given time period.
+
+    Each entry is counted for all the members in the library. If a member visits multiple times in the given
+    period, it is counted multiple times.
+
+    The report is organized by gender and age group. Each row contains the count of entries of a certain age
+    group and gender combination.
     """
     age_map = {
         'CHILD': 0,
@@ -127,7 +133,10 @@ def get_footfall(library=None, start=None, end=None):
 
 def get_first_timers(library=None, start=None, end=None):
     """
-    Return list of members who have come to the library for the first time.
+    Return list of members who have come to the library for the first time in that time period.
+
+    Example: If a member visits for the first time in April and then visited in subsequent months, they will be included
+    only in the report for April, not in May or June.
     """
     start = start or EntryLog.DEFAULT_START_DATE
     end = end or datetime.now()
@@ -170,7 +179,8 @@ def get_first_timers(library=None, start=None, end=None):
 
 def get_most_frequent_users(library=None, start=None, end=None):
     """
-    Return a list of dicts containing details of the most frequently visiting members.
+    Get details about all members who have visited the library at least once in the given time period, with their
+    details and the number of times they have visited the library in that time period.
     """
     filters = Q(
         member_logs__entered_date__range=(start or EntryLog.DEFAULT_START_DATE, end or datetime.now()),
@@ -208,7 +218,7 @@ def get_most_frequent_users(library=None, start=None, end=None):
 
 def get_members_who_did_not_visit(library=None, start=None, end=None):
     """
-    Return a list of members who have not visited the library.
+    Return a list of members who have not visited the library in the given time period.
     """
     start = start or EntryLog.DEFAULT_START_DATE
     end = end or datetime.now()

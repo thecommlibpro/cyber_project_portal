@@ -1,0 +1,40 @@
+{% extends "admin/change_list.html" %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <style>
+        .tooltip-wrapper {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .custom-tooltip {
+            display: none;
+            position: absolute;
+            top: -10px;
+            left: 110%;
+            background: #333;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 4px;
+            white-space: normal;
+            width: 400px;
+            font-size: 13px;
+            z-index: 9999;
+        }
+
+        .tooltip-wrapper:hover .custom-tooltip {
+            display: block;
+        }
+    </style>
+{% endblock %}
+
+{% block content_title %}
+    {{ block.super }}
+    <span class="tooltip-wrapper">Reports Info
+        <div class="custom-tooltip">{{ reports_info|safe }}</div>
+    </span>
+{% endblock %}
+
+

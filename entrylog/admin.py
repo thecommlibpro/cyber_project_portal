@@ -28,6 +28,7 @@ class EntryLogActionForm(ActionForm):
 class EntryLogAdmin(admin.ModelAdmin):
     form = LogAdminForm
     action_form = EntryLogActionForm
+    change_list_template = "admin/changelist.html"
     list_display = (
         'library_location',
         'get_member_id',
@@ -70,6 +71,9 @@ class EntryLogAdmin(admin.ModelAdmin):
 
     # This is for not having to select any existing slot in case of generating slots
     def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['reports_info'] = self._get_report_descriptions()
+
         if 'action' in request.POST and 'generate_l' in request.POST['action']:
             if not request.POST.getlist(ACTION_CHECKBOX_NAME):
                 post = request.POST.copy()
@@ -104,75 +108,50 @@ class EntryLogAdmin(admin.ModelAdmin):
 
     @admin.action(description="L1 - Generate age wise UFF report")
     def generate_l1(modeladmin, request, queryset):
-        request_json = dict(request.POST)
-        library = request_json["library"][0]
-        start_day = request_json["start_day"][0]
-        end_day = request_json["end_day"][0]
-
-        results, fieldnames = get_age_wise_unique_visitors(library, start_day, end_day)
-        suffix = modeladmin._get_report_suffix(library, start_day, end_day)
-
-        return modeladmin._generate_report_csv('L1' + suffix, results, fieldnames)
+        return modeladmin._generate_report(request, queryset, 'L1')
 
     @admin.action(description="L2 - Generate gender wise UFF report")
     def generate_l2(modeladmin, request, queryset):
-        request_json = dict(request.POST)
-        library = request_json["library"][0]
-        start_day = request_json["start_day"][0]
-        end_day = request_json["end_day"][0]
-
-        results, fieldnames = get_gender_wise_unique_visitors(library, start_day, end_day)
-        suffix = modeladmin._get_report_suffix(library, start_day, end_day)
-
-        return modeladmin._generate_report_csv('L2' + suffix, results, fieldnames)
+        return modeladmin._generate_report(request, queryset, 'L2')
 
     @admin.action(description="L3 - Generate age + gender wise report of member footfall")
     def generate_l3(modeladmin, request, queryset):
-        request_json = dict(request.POST)
-        library = request_json["library"][0]
-        start_day = request_json["start_day"][0]
-        end_day = request_json["end_day"][0]
-
-        results, fieldnames = get_footfall(library, start_day, end_day)
-        suffix = modeladmin._get_report_suffix(library, start_day, end_day)
-
-        return modeladmin._generate_report_csv('L3' + suffix, results, fieldnames)
+        return modeladmin._generate_report(request, queryset, 'L3')
 
     @admin.action(description="L4 - Generate first timers report")
     def generate_l4(modeladmin, request, queryset):
-        request_json = dict(request.POST)
-        library = request_json["library"][0]
-        start_day = request_json["start_day"][0]
-        end_day = request_json["end_day"][0]
-
-        results, fieldnames = get_first_timers(library, start_day, end_day)
-        suffix = modeladmin._get_report_suffix(library, start_day, end_day)
-
-        return modeladmin._generate_report_csv('L4' + suffix, results, fieldnames)
+        return modeladmin._generate_report(request, queryset, 'L4')
 
     @admin.action(description="L5 - Generate most frequent users report")
     def generate_l5(modeladmin, request, queryset):
-        request_json = dict(request.POST)
-        library = request_json["library"][0]
-        start_day = request_json["start_day"][0]
-        end_day = request_json["end_day"][0]
-
-        results, fieldnames = get_most_frequent_users(library, start_day, end_day)
-        suffix = modeladmin._get_report_suffix(library, start_day, end_day)
-
-        return modeladmin._generate_report_csv('L5' + suffix, results, fieldnames)
+        return modeladmin._generate_report(request, queryset, 'L5')
 
     @admin.action(description="L6 - Generate non-visiting members report")
     def generate_l6(modeladmin, request, queryset):
+        modeladmin.res
+        return modeladmin._generate_report(request, queryset, 'L6')
+
+    def _generate_report(modeladmin, request, queryset, report_name):
         request_json = dict(request.POST)
         library = request_json["library"][0]
         start_day = request_json["start_day"][0]
         end_day = request_json["end_day"][0]
 
-        results, fieldnames = get_members_who_did_not_visit(library, start_day, end_day)
+        report_map = {
+            'L1': get_age_wise_unique_visitors,
+            'L2': get_gender_wise_unique_visitors,
+            'L3': get_footfall,
+            'L4': get_first_timers,
+            'L5': get_most_frequent_users,
+            'L6': get_members_who_did_not_visit,
+        }
+
+        results, fieldnames = report_map[report_name](library, start_day, end_day)
         suffix = modeladmin._get_report_suffix(library, start_day, end_day)
 
-        return modeladmin._generate_report_csv('L6' + suffix, results, fieldnames)
+        modeladmin.message_user(request, f"Report {report_name} generated successfully{suffix}")
+
+        return modeladmin._generate_report_csv(report_name + suffix, results, fieldnames)
 
     @staticmethod
     def _get_report_suffix(library: str, start: str, end: str):
@@ -193,6 +172,24 @@ class EntryLogAdmin(admin.ModelAdmin):
             writer.writerow(row_dict)
 
         return response
+
+    def _get_report_descriptions(modeladmin):
+        report_map = {
+            'L1': ("Age wise UFF report", get_age_wise_unique_visitors),
+            'L2': ("Gender wise UFF report", get_gender_wise_unique_visitors),
+            'L3': ("Age + gender wise report of member footfall", get_footfall),
+            'L4': ("First timers report", get_first_timers),
+            'L5': ("Most frequent users report", get_most_frequent_users),
+            'L6': ("Non-visiting members report", get_members_who_did_not_visit),
+        }
+
+        description = ""
+
+        for report_name, (report_description, _) in report_map.items():
+            description += f"<b>{report_name} - {report_description}</b><br />"
+            description += f"<p>{report_map[report_name][1].__doc__.replace('\n', '<br />')}</p><br />"
+
+        return description
 
 
 admin.site.register(EntryLog, EntryLogAdmin)
