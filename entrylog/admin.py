@@ -149,8 +149,6 @@ class EntryLogAdmin(admin.ModelAdmin):
         results, fieldnames = report_map[report_name](library, start_day, end_day)
         suffix = modeladmin._get_report_suffix(library, start_day, end_day)
 
-        modeladmin.message_user(request, f"Report {report_name} generated successfully{suffix}")
-
         return modeladmin._generate_report_csv(report_name + suffix, results, fieldnames)
 
     @staticmethod
