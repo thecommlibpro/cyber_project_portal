@@ -121,6 +121,7 @@
         });
     </script>
 
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
     <!-- Script to show a text under the member ID by fetching the API results when value of the member_id input changes -->
     <script type="application/javascript" defer>
         const memberInput = document.getElementById('member_id');
@@ -129,7 +130,7 @@
         const validMessageSpan = document.getElementById('member_id_valid_message');
         const invalidMessageSpan = document.getElementById('member_id_invalid_message');
 
-        memberInput.addEventListener('input', () => {
+        memberInput.addEventListener('input', _.debounce(() => {
             if (!memberInput.value || memberInput.value.length < 4) {
                 validMessageSpan.style.display = 'none';
                 invalidMessageSpan.style.display = 'none';
@@ -161,6 +162,6 @@
                         invalidMessageSpan.style.display = 'inline-block';
                     }
                 });
-        });
+        }, 300, options={ 'leading': false, 'trailing': true }));
     </script>
 {% endblock %}
