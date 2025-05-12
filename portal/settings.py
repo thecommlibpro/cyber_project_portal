@@ -187,3 +187,10 @@ INTERNAL_IPS = [
     "localhost",
     # ...
 ]
+
+
+KOHA_API = {
+    'BASE_URL': os.getenv('KOHA_API_URL', 'https://staff.thecommunitylibraryproject.org/api/v1'),
+    'USERNAME': os.getenv('KOHA_USERNAME', 'admin'),
+    'PASSWORD': os.getenv('KOHA_PASSWORD', 'admin'),
+}

@@ -16,3 +16,7 @@ class MemberViewSet(viewsets.ReadOnlyModelViewSet):
     ]
     lookup_field = 'member_id'
 
+    def get_object(self) -> Member:
+        member = Member.get(self.kwargs[self.lookup_field])
+
+        return member.refresh_from_koha()

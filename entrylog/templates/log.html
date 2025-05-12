@@ -144,6 +144,16 @@
                         if (data.last_login) {
                             validMessageSpan.innerText += `, Last login: ${data.last_login}`;
                         }
+                        if (data.is_suspended) {
+                            validMessageSpan.innerText += `, Suspended/Retired`;
+
+                            if (data.suspension_date) {
+                                validMessageSpan.innerText += `, From: ${new Date(data.suspension_date).toLocaleDateString()}`;
+                            }
+                            if (data.suspension_end_at) {
+                                validMessageSpan.innerText += ` till: ${new Date(data.suspension_end_at).toLocaleDateString()}`;
+                            }
+                        }
                         validMessageSpan.style.display = 'inline-block';
                         invalidMessageSpan.style.display = 'none';
                     } else {

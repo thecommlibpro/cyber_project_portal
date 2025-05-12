@@ -11,13 +11,12 @@ from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from datetime import datetime, date
 from dateutil.parser import parse as date_parse
 from dateutil.relativedelta import relativedelta
- 
-def calculate_age(birthDate):
-    birth_day = date_parse(birthDate)
-    return relativedelta(date.today(), birth_day).years
+
+from utils import calculate_age
+
 
 class DataImport(ActionForm):
-    
+
     file = forms.FileField(required=False)
 
 

@@ -18,4 +18,7 @@ class MemberReadOnlySerializer(serializers.ModelSerializer):
             'gender',
             'first_login_at',
             'last_login',
+            'is_suspended',
+            'suspension_date',
+            'suspension_end_at',
         ]

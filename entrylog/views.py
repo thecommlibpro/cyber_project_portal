@@ -1,9 +1,12 @@
+import logging
 from datetime import datetime
 
 from django.contrib.admin.views.decorators import staff_member_required
 
 from django.shortcuts import render, redirect
 from django.utils import timezone
+
+from .external import update_koha
 from .forms import LogForm
 from .models import EntryLog, Member
 from django.db import IntegrityError
@@ -26,7 +29,7 @@ def daily_log(request):
             library = form.cleaned_data['library']
 
             # Get or create the member instance
-            member = Member.objects.filter(member_id=member_id).first()
+            member = Member.get(member_id)
 
             if not member:
                 context['error'] = "Member not found"
@@ -55,6 +58,12 @@ def daily_log(request):
                         member.save()
 
                         context['show_sticker_message'] = True
+
+                    try:
+                        update_koha(member_id)
+                        logging.info(f"Updated visits on Koha for member {member_id}")
+                    except Exception as e:
+                        logging.error(f"Failed to update visits on Koha for member {member_id}: {e}")
                 except IntegrityError:
                     context['error'] = "Failed to create entry due to a conflict."
 
