@@ -51,14 +51,14 @@ def update_koha(member_id):
             }
         )
 
-    if response.status_code != 200:
+    if not response.ok:
         logging.error(f'Failed to update first visit {member_id}: {response.status_code}')
 
     if member_data.get('LAST_VISIT'):
         response = requests.patch(
             f'{base_url}/patrons/{patron_id}/extended_attributes/{member_data["LAST_VISIT"]["extended_attribute_id"]}',
             auth=auth,
-            data={
+            json={
                 'value': last_visit_date,
             }
         )
@@ -66,13 +66,13 @@ def update_koha(member_id):
         response = requests.post(
             f'{base_url}/patrons/{patron_id}/extended_attributes',
             auth=auth,
-            data={
+            json={
                 'type': 'LAST_VISIT',
                 'value': last_visit_date,
             }
         )
 
-    if response.status_code != 200:
+    if not response.ok:
         logging.error(f'Failed to update last visit {member_id}: {response.status_code}')
 
     logging.info(f"Updated visits {first_visit_date}, {last_visit_date} on Koha for member {member_id}")
