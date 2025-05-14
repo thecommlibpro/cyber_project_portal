@@ -81,7 +81,7 @@ class Member(models.Model):
         logging.info(f'Fetched patron details ({member_id}) from Koha: {response.status_code} -> {response.url}')
 
         # We need an exact match, if there are multiple results then return None
-        members = list(filter(lambda member: member['cardnumber'] == member_id, response.json()))
+        members = list(filter(lambda member: member['cardnumber'].upper() == member_id, response.json()))
         member_data = members[0] if len(members) == 1 else None
 
         if not member_data:
@@ -104,7 +104,7 @@ class Member(models.Model):
         member_data = cls.fetch_from_koha(member_id)
 
         if not member_data:
-            return None
+            return member
 
         if not member:
             member = cls()
