@@ -6,3 +6,9 @@ staticfiles/
 admin-interface/
 
 .idea/
+
+.env
+.python-version
+CLAUDE.md
+
+portal/local_settings.py
