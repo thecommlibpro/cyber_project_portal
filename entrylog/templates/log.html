@@ -49,11 +49,7 @@
 {#                <h2 class="text-xl font-semibold mb-4 text-gray-800">Please note</h2>#}
                 <p class="text-red-600 mb-6 text-3xl">{{ error }}</p>
                 <p class="text-yellow-600 mb-6 text-3xl">{{ warning }}</p>
-                <p class="text-blue-600 mb-6 text-3xl">{{ message }}
-                    {% if show_sticker_message %}
-                        {% include 'sticker.html' %}
-                    {% endif %}
-                </p>
+                <p class="text-blue-600 mb-6 text-3xl">{{ message }}</p>
                 <label for="modal-toggle" class="inline-block bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded cursor-pointer">
                     Close
                 </label>

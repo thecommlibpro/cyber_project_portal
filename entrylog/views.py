@@ -57,8 +57,6 @@ def daily_log(request):
                         member.first_login_at = entry.timestamp
                         member.save()
 
-                        context['show_sticker_message'] = True
-
                     try:
                         update_koha(member_id)
                         logging.info(f"Updated visits on Koha for member {member_id}")
@@ -68,16 +66,3 @@ def daily_log(request):
                     context['error'] = "Failed to create entry due to a conflict."
 
     return render(request, 'log.html', context)
-
-
-@staff_member_required
-def mark_sticker(request):
-    if request.method == "POST":
-        member_id = request.POST.get('member_id')
-        sticker_given = request.POST.get('sticker_given')
-        member = Member.objects.filter(member_id=member_id).first()
-
-        member.is_sticker_received = sticker_given == 'true'
-        member.save()
-
-        return redirect(to='daily_log')

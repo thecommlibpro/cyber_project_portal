@@ -23,7 +23,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.static import serve
 
-from entrylog.views import daily_log, mark_sticker
+from entrylog.views import daily_log
 
 
 #print(settings.MEDIA_URL, settings.MEDIA_ROOT)
@@ -35,7 +35,6 @@ urlpatterns = [
     path("slots/", include("slots.urls")),
     path("members/", include("members.urls")),
     re_path("library/log", daily_log, name="daily_log"),
-    path("library/mark_sticker", mark_sticker, name="mark_sticker"),
     re_path(
         r"^%s(?P<path>.*)$" % re.escape(settings.MEDIA_URL.lstrip("/")), serve, kwargs={'document_root':settings.MEDIA_ROOT},
     ),
