@@ -4,7 +4,6 @@ from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
 from dateutil.utils import today
 from django.contrib import messages
-from django.db import connection
 from django import forms
 
 def generate_slots_for_a_month():
@@ -65,14 +64,7 @@ def check_time_slot_for_age_group(member_id, slot_datetime, library):
 
 
 def get_member_results():
-    cursor = connection.cursor()
-    cursor.execute(f"SELECT * FROM members_member")
-    columns = [col[0] for col in cursor.description]
-    member_results = [
-        dict(zip(columns, row))
-        for row in cursor.fetchall()
-    ]
-    return member_results
+    return list(Member.objects.exclude(age=None).values())
 
 def get_slot_results(library, start_day, end_day):
     """
