@@ -112,7 +112,7 @@ def self_checkin(request):
             status=403,
         )
 
-    today = timezone.localdate()
+    today = timezone.now().date()
 
     # Keep the check and create operation together. The existing model has no
     # database uniqueness constraint, so a unique constraint should be added
