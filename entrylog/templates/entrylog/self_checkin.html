@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Self check-in{% endblock %}
+
+{% block content %}
+<style>
+  .self-checkin {
+    max-width: 34rem;
+    margin: 3rem auto;
+    padding: 2rem;
+    text-align: center;
+  }
+  .self-checkin h1 { margin-bottom: .5rem; }
+  .self-checkin p { color: #555; }
+  .self-checkin label {
+    display: block;
+    margin: 1.25rem 0 .4rem;
+    text-align: left;
+    font-weight: 600;
+  }
+  .self-checkin select,
+  .self-checkin input {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 3.5rem;
+    padding: .75rem 1rem;
+    border: 1px solid #aaa;
+    border-radius: .5rem;
+    font-size: 1.25rem;
+  }
+  .self-checkin button {
+    width: 100%;
+    min-height: 3.5rem;
+    margin-top: 1.5rem;
+    border: 0;
+    border-radius: .5rem;
+    background: #176b45;
+    color: white;
+    font-size: 1.25rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .self-checkin .message {
+    margin: 1rem 0;
+    padding: 1rem;
+    border-radius: .5rem;
+    font-weight: 600;
+  }
+  .self-checkin .success { background: #e1f5e9; color: #14532d; }
+  .self-checkin .error { background: #fde8e8; color: #991b1b; }
+</style>
+
+<main class="self-checkin">
+  <h1>Member check-in</h1>
+  <p>Choose your library, then scan or enter your member ID.</p>
+
+  {% if success %}
+    <div class="message success" role="status">{{ success }}</div>
+  {% endif %}
+
+  {% if error %}
+    <div class="message error" role="alert">{{ error }}</div>
+  {% endif %}
+
+  <form method="post" autocomplete="off">
+    {% csrf_token %}
+
+    <label for="library">Library</label>
+    <select id="library" name="library" required>
+      <option value="">Select library</option>
+      {% for value, display in libraries %}
+        <option value="{{ value }}" {% if selected_library == value %}selected{% endif %}>
+          {{ display }}
+        </option>
+      {% endfor %}
+    </select>
+
+    <label for="member_id">Member ID</label>
+    <input
+      id="member_id"
+      name="member_id"
+      value="{{ member_id }}"
+      maxlength="100"
+      placeholder="Scan or type your ID"
+      autocapitalize="characters"
+      autofocus
+      required
+    >
+
+    <button type="submit">Check in</button>
+  </form>
+</main>
+
+<script>
+  const memberInput = document.getElementById('member_id');
+  memberInput.focus();
+  memberInput.addEventListener('input', (event) => {
+    event.target.value = event.target.value.toUpperCase();
+  });
+</script>
+{% endblock %}
+
